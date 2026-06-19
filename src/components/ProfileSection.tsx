@@ -202,7 +202,7 @@ export default function ProfileSection({ student, registrations, activities, onV
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500 font-medium">Fakultas:</span>
-                <span className="font-semibold text-gray-900">Teknik & Riset</span>
+                <span className="font-semibold text-gray-900">{student.faculty || 'Fakultas Sains dan Teknik'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500 font-medium font-sans">Semester:</span>

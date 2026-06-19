@@ -15,48 +15,48 @@ import { CalendarDays, ShieldCheck, HelpCircle, ArrowRight, Award, MessageSquare
 export default function App() {
   // --- Persistent LocalState Engine ---
   const [activities, setActivities] = useState<Activity[]>(() => {
-    const saved = localStorage.getItem('uab_activities') || localStorage.getItem('ubn_activities');
+    const saved = localStorage.getItem('uab_activities_v5') || localStorage.getItem('ubn_activities_v5');
     return saved ? JSON.parse(saved) : INITIAL_ACTIVITIES;
   });
 
   const [registrations, setRegistrations] = useState<Registration[]>(() => {
-    const saved = localStorage.getItem('uab_registrations') || localStorage.getItem('ubn_registrations');
+    const saved = localStorage.getItem('uab_registrations_v5') || localStorage.getItem('ubn_registrations_v5');
     return saved ? JSON.parse(saved) : INITIAL_REGISTRATIONS;
   });
 
   const [student, setStudent] = useState<StudentProfile>(() => {
-    const saved = localStorage.getItem('uab_student_profile') || localStorage.getItem('ubn_student_profile');
+    const saved = localStorage.getItem('uab_student_profile_v5') || localStorage.getItem('ubn_student_profile_v5');
     return saved ? JSON.parse(saved) : INITIAL_STUDENT;
   });
 
   const [activePage, setActivePage] = useState<PageType>(() => {
-    const saved = localStorage.getItem('uab_active_page') || localStorage.getItem('ubn_active_page');
+    const saved = localStorage.getItem('uab_active_page_v5') || localStorage.getItem('ubn_active_page_v5');
     return saved ? (saved as PageType) : 'HOME';
   });
 
   const [selectedActivityId, setSelectedActivityId] = useState<string>(() => {
-    return localStorage.getItem('uab_selected_activity_id') || localStorage.getItem('ubn_selected_activity_id') || '';
+    return localStorage.getItem('uab_selected_activity_id_v5') || localStorage.getItem('ubn_selected_activity_id_v5') || '';
   });
 
   // Sync to localStorage
   useEffect(() => {
-    localStorage.setItem('uab_activities', JSON.stringify(activities));
+    localStorage.setItem('uab_activities_v5', JSON.stringify(activities));
   }, [activities]);
 
   useEffect(() => {
-    localStorage.setItem('uab_registrations', JSON.stringify(registrations));
+    localStorage.setItem('uab_registrations_v5', JSON.stringify(registrations));
   }, [registrations]);
 
   useEffect(() => {
-    localStorage.setItem('uab_student_profile', JSON.stringify(student));
+    localStorage.setItem('uab_student_profile_v5', JSON.stringify(student));
   }, [student]);
 
   useEffect(() => {
-    localStorage.setItem('uab_active_page', activePage);
+    localStorage.setItem('uab_active_page_v5', activePage);
   }, [activePage]);
 
   useEffect(() => {
-    localStorage.setItem('uab_selected_activity_id', selectedActivityId);
+    localStorage.setItem('uab_selected_activity_id_v5', selectedActivityId);
   }, [selectedActivityId]);
 
   // --- Router Navigation Orchestrator with Top Scrolling ---

@@ -189,44 +189,17 @@ export const INITIAL_ACTIVITIES: Activity[] = [
 ];
 
 export const INITIAL_STUDENT: StudentProfile = {
-  name: 'Budi Hartono Nugroho',
+  name: 'Andora Lavincy',
   nim: '10123045',
-  email: 'budi.nugroho@student.uab.ac.id',
-  department: 'Informatika & Ilmu Komputer',
-  semester: 4,
-  skpiPointsAccumulated: 35,
-  registeredActivityIds: ['act-1', 'act-4']
+  email: 'andora.lavincy@student.uab.ac.id',
+  department: 'Sistem Informasi',
+  semester: 2,
+  skpiPointsAccumulated: 0,
+  registeredActivityIds: [],
+  faculty: 'Fakultas Sains dan Teknik'
 };
 
 export const INITIAL_REGISTRATIONS: Registration[] = [
-  {
-    id: 'reg-mock-1',
-    activityId: 'act-1',
-    activityTitle: 'Latihan Kepemimpinan Manajemen Mahasiswa (LKMM-TD) 2026',
-    studentName: 'Budi Hartono Nugroho',
-    studentNim: '10123045',
-    studentEmail: 'budi.nugroho@student.uab.ac.id',
-    studentPhone: '0812-7890-1234',
-    studentDepartment: 'Informatika & Ilmu Komputer',
-    studentSemester: 4,
-    uploadedKtmUrl: 'ktm_budi_hartono.jpg',
-    registrationDate: '2026-06-18 14:32',
-    status: 'APPROVED'
-  },
-  {
-    id: 'reg-mock-2',
-    activityId: 'act-4',
-    activityTitle: 'Festival Teater Nusantara & Parade Seni Mahasiswa XXIV',
-    studentName: 'Budi Hartono Nugroho',
-    studentNim: '10123045',
-    studentEmail: 'budi.nugroho@student.uab.ac.id',
-    studentPhone: '0812-7890-1234',
-    studentDepartment: 'Informatika & Ilmu Komputer',
-    studentSemester: 4,
-    uploadedKtmUrl: 'ktm_budi_hartono.jpg',
-    registrationDate: '2026-06-15 09:12',
-    status: 'APPROVED'
-  },
   {
     id: 'reg-mock-3',
     activityId: 'act-2',
@@ -235,7 +208,7 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     studentNim: '10123180',
     studentEmail: 'siti.rahma@student.uab.ac.id',
     studentPhone: '0857-8899-7766',
-    studentDepartment: 'Sistem Informasi Kebencanaan',
+    studentDepartment: 'Kesehatan Masyarakat',
     studentSemester: 4,
     uploadedKtmUrl: 'ktm_siti_rahma.jpg',
     registrationDate: '2026-06-19 08:30',

@@ -59,6 +59,7 @@ export interface StudentProfile {
   semester: number;
   skpiPointsAccumulated: number;
   registeredActivityIds: string[];
+  faculty?: string;
 }
 
 export type PageType = 'HOME' | 'PROFILE' | 'ACTIVITIES' | 'DETAILS' | 'REGISTRATION' | 'ADMIN';

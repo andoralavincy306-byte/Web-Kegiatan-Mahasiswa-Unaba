@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Activity, StudentProfile, Registration } from '../types';
-import { ArrowLeft, Upload, FileText, Check, AlertCircle, Sparkles, Building2, User2 } from 'lucide-react';
+import { ArrowLeft, Check, AlertCircle, Sparkles, Building2, User2 } from 'lucide-react';
 
 interface RegistrationFormProps {
   activity: Activity;
@@ -17,73 +17,13 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
   const [phone, setPhone] = useState('');
   const [department, setDepartment] = useState(student.department);
   const [semester, setSemester] = useState(student.semester);
-  
-  // File upload state (Drag & drop)
-  const [dragActive, setDragActive] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadError, setUploadError] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  // Drag and drop event handlers
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      validateAndSetFile(file);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      validateAndSetFile(file);
-    }
-  };
-
-  const validateAndSetFile = (file: File) => {
-    const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-    if (!validTypes.includes(file.type)) {
-      setUploadError('Tipe berkas tidak valid. Harap unggah berkas berformat JPG, PNG, atau PDF.');
-      setUploadedFile(null);
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setUploadError('Ukuran berkas terlalu besar. Maksimum batas ukuran adalah 2MB.');
-      setUploadedFile(null);
-      return;
-    }
-    setUploadError('');
-    setUploadedFile(file);
-  };
-
-  const onButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!uploadedFile) {
-      setUploadError('Harap lampirkan foto berkas pendukung KTM aktif Anda.');
-      return;
-    }
 
     setIsSubmitting(true);
 
@@ -102,7 +42,7 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
         studentPhone: phone || '0812-XXXX-XXXX',
         studentDepartment: department,
         studentSemester: semester,
-        uploadedKtmUrl: uploadedFile ? uploadedFile.name : 'ktm_upload.jpg'
+        uploadedKtmUrl: 'pendaftaran_manual_aktif.jpg'
       });
     }, 1200);
   };
@@ -131,7 +71,7 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
               <span>Tahapan Selanjutnya:</span>
             </p>
             <ol className="list-decimal pl-4.5 space-y-2">
-              <li>Tim Biro Kemahasiswaan akan memverifikasi keaktifan NIM & kelengkapan berkas kartu mahasiswa (KTM) Anda dalam 24 jam.</li>
+              <li>Tim Biro Kemahasiswaan akan memverifikasi keaktifan NIM & kesesuaian data pendaftaran Anda dalam 24 jam.</li>
               <li>Status pendaftaran dapat dipantau langsung pada menu <strong className="font-bold text-gray-800">"Pendaftaran Saya / Riwayat Kegiatan"</strong>.</li>
               <li>E-Sertifikat keikutsertaan kelulusan resmi akan otomatis diterbitkan ke portal Anda setelah admin memverifikasi kehadiran.</li>
             </ol>
@@ -189,7 +129,7 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
             <AlertCircle className="h-5 w-5 shrink-0 text-univ-blue-700 mt-0.5" />
             <div className="space-y-1">
               <span className="font-bold block">Pemberitahuan Sistem:</span>
-              Sistem telah mendeteksi akun portal mahasiswa Anda dan mengisi data biodata secara otomatis untuk menjamin keaslian pendaftaran kuliah.
+              Sistem telah memuat data profil otomatis Anda. Anda dapat menyesuaikan atau mengisi seluruh kolom di bawah ini secara bebas sesuai identitas peserta.
             </div>
           </div>
 
@@ -199,12 +139,15 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
               <label className="text-xs font-bold text-gray-700 flex items-center space-x-1">
                 <User2 className="h-3.5 w-3.5 text-gray-400" />
                 <span>Nama Lengkap Mahasiswa</span>
+                <span className="text-rose-500 font-extrabold">*</span>
               </label>
               <input
                 type="text"
-                disabled
+                required
                 value={name}
-                className="w-full rounded-xl border border-gray-100 bg-slate-100 px-4 py-3 text-sm font-semibold text-gray-500 cursor-not-allowed"
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Masukkan nama lengkap Anda"
+                className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
               />
             </div>
 
@@ -213,24 +156,40 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
               <label className="text-xs font-bold text-gray-700 flex items-center space-x-1">
                 <Building2 className="h-3.5 w-3.5 text-gray-400" />
                 <span>Nomor Induk Mahasiswa (NIM)</span>
+                <span className="text-rose-500 font-extrabold">*</span>
               </label>
               <input
                 type="text"
-                disabled
+                required
                 value={nim}
-                className="w-full rounded-xl border border-gray-100 bg-slate-100 px-4 py-3 text-sm font-mono font-semibold text-gray-500 cursor-not-allowed"
+                onChange={(e) => setNim(e.target.value)}
+                placeholder="Contoh: 10123045"
+                className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-mono font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
               />
             </div>
 
             {/* Department (Major) Field */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700">Program Studi (Prodi)</label>
-              <input
-                type="text"
-                disabled
+              <label className="text-xs font-bold text-gray-700 flex items-center space-x-1">
+                <Building2 className="h-3.5 w-3.5 text-gray-400" />
+                <span>Program Studi (Prodi)</span>
+                <span className="text-rose-500 font-extrabold">*</span>
+              </label>
+              <select
+                required
                 value={department}
-                className="w-full rounded-xl border border-gray-100 bg-slate-100 px-4 py-3 text-sm font-semibold text-gray-500 cursor-not-allowed"
-              />
+                onChange={(e) => setDepartment(e.target.value)}
+                className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
+              >
+                <option value="">-- Pilih Program Studi --</option>
+                <option value="Psikologi">Psikologi</option>
+                <option value="Sistem Informasi">Sistem Informasi</option>
+                <option value="Akuntansi">Akuntansi</option>
+                <option value="Manajemen">Manajemen</option>
+                <option value="Kesehatan Masyarakat">Kesehatan Masyarakat</option>
+                <option value="Administrasi Masyarakat">Administrasi Masyarakat</option>
+                <option value="Manajemen Pelayanan Rumah Sakit">Manajemen Pelayanan Rumah Sakit</option>
+              </select>
             </div>
 
             {/* Semester Field */}
@@ -238,20 +197,25 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
               <label className="text-xs font-bold text-gray-700">Semester Aktif</label>
               <input
                 type="number"
-                disabled
+                required
+                min={1}
+                max={14}
                 value={semester}
-                className="w-full rounded-xl border border-gray-100 bg-slate-100 px-4 py-3 text-sm font-semibold text-gray-400 cursor-not-allowed font-mono"
+                onChange={(e) => setSemester(Number(e.target.value) || 1)}
+                className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none font-mono"
               />
             </div>
 
             {/* Email field */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700">Alamat Surat Elekronik (Email Kampus)</label>
+              <label className="text-xs font-bold text-gray-700">Email Mahasiswa</label>
               <input
                 type="email"
-                disabled
+                required
                 value={email}
-                className="w-full rounded-xl border border-gray-100 bg-slate-100 px-4 py-3 text-sm font-semibold text-gray-500 cursor-not-allowed font-mono"
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="nama.mahasiswa@student.uab.ac.id"
+                className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none font-mono"
               />
             </div>
 
@@ -271,80 +235,6 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
                 className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
               />
             </div>
-          </div>
-
-          {/* Interactive Drag & Drop File Uploader */}
-          <div className="space-y-2 pt-2 text-left">
-            <label className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
-              <span>Upload Lampiran KTM Aktif Berwarna (Format: JGP, PNG, atau PDF)</span>
-              <span className="text-rose-500 font-extrabold">*</span>
-            </label>
-
-            <div
-              id="file-drop-zone"
-              onDragEnter={handleDrag}
-              onDragOver={handleDrag}
-              onDragLeave={handleDrag}
-              onDrop={handleDrop}
-              onClick={onButtonClick}
-              className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-all cursor-pointer ${
-                dragActive
-                  ? 'border-univ-orange-500 bg-univ-orange-50/20'
-                  : uploadedFile
-                  ? 'border-green-400 bg-green-50/10'
-                  : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 hover:border-slate-350'
-              }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept=".jpg,.jpeg,.png,.pdf"
-                onChange={handleFileChange}
-              />
-
-              {uploadedFile ? (
-                <div className="space-y-3">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
-                    <FileText className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">{uploadedFile.name}</p>
-                    <p className="text-xs text-gray-400 font-mono">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setUploadedFile(null);
-                    }}
-                    className="text-xs font-bold text-rose-600 hover:underline hover:text-rose-700"
-                  >
-                    Ganti Berkas
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-univ-blue-50 text-univ-blue-800 border border-univ-blue-100">
-                    <Upload className="h-5.5 w-5.5" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-gray-800">
-                      Seret & taruh berkas di sini atau <span className="text-univ-blue-700 hover:underline">pilih manual</span>
-                    </p>
-                    <p className="text-xs text-gray-400">Dimensi ideal, kapasitas berkas maksimum 2MB (JPG, PNG, PDF)</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Error messaging */}
-            {uploadError && (
-              <p className="text-xs font-bold text-rose-600 flex items-center space-x-1 mt-1">
-                <AlertCircle className="h-3.5 w-3.5" />
-                <span>{uploadError}</span>
-              </p>
-            )}
           </div>
 
           {/* Form Action buttons footer */}
