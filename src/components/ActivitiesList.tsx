@@ -154,24 +154,6 @@ export default function ActivitiesList({ activities, onSelectActivity, onNavigat
             </select>
           </div>
         </div>
-
-        {/* Quick Category Tab Triggers */}
-        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-50">
-          {categoriesList.map((cat) => (
-            <button
-              key={cat.value}
-              id={`cat-tab-${cat.value.toLowerCase()}`}
-              onClick={() => setSelectedCategory(cat.value)}
-              className={`rounded-lg px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
-                selectedCategory === cat.value
-                  ? 'bg-univ-blue-800 text-white shadow-sm'
-                  : 'bg-slate-50 text-gray-600 hover:bg-slate-100 hover:text-univ-blue-800'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Grid List Renderer */}

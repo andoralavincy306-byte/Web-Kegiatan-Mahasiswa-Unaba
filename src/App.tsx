@@ -183,48 +183,6 @@ export default function App() {
                   subtitle="Selamat datang di Pusat Informasi Universitas Anak Bangsa (UAB Student Hub)."
                 />
 
-                {/* Categories Overview Bento Grid section */}
-                <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
-                  <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-gray-150 pb-4 mb-8">
-                    <div>
-                      <h3 className="text-xl font-extrabold text-univ-blue-800 sm:text-2xl">
-                        Rekomendasi Layanan Aktivitas
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1">Cari bidang pengembangan kredensial Anda sesuai prodi kemahasiswaan</p>
-                    </div>
-                    <button 
-                      onClick={() => navigateTo('ACTIVITIES')}
-                      className="text-xs font-bold text-univ-orange-600 hover:text-univ-orange-700 inline-flex items-center space-x-1 mt-2 md:mt-0 hover:underline"
-                    >
-                      <span>Lihat Semua Kegiatan</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Bento Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {[
-                      { icon: BookOpen, title: 'Keilmuan', desc: 'Lomba riset, karya tulis nasional, & penalaran.', cat: ActivityCategory.ACADEMIC },
-                      { icon: Award, title: 'Organisasi', desc: 'Pelatihan LKMM, kepemimpinan fungsionaris.', cat: ActivityCategory.ORGANIZATION },
-                      { icon: ShieldCheck, title: 'Pengabdian', desc: 'KKN tematik murni dan penyuluhan sosial.', cat: ActivityCategory.COMMUNITY },
-                      { icon: Sparkles, title: 'Kesenian', desc: 'Festival teater tari & kreativitas budaya.', cat: ActivityCategory.ARTS },
-                      { icon: CalendarDays, title: 'Olahraga', desc: 'Turnamen bulutangkis antar jurusan.', cat: ActivityCategory.SPORTS },
-                    ].map((item, id) => (
-                      <div 
-                        key={id}
-                        onClick={() => navigateTo('ACTIVITIES')}
-                        className="group rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-univ-blue-600/30 transition-all cursor-pointer"
-                      >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-univ-blue-50 text-univ-blue-800 group-hover:bg-univ-blue-800 group-hover:text-white transition-all">
-                          <item.icon className="h-5 w-5" />
-                        </div>
-                        <h4 className="text-sm font-bold text-gray-900 mt-4 group-hover:text-univ-blue-800 transition-colors">{item.title}</h4>
-                        <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">{item.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
                 {/* Featured Highlight Slider List */}
                 <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
                   <div className="border-b border-gray-150 pb-4 mb-8">
