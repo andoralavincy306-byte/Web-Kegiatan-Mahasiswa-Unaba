@@ -1,34 +1,50 @@
 import React, { useState, useMemo } from 'react';
 import { Activity, ActivityCategory, ActivityStatus } from '../types';
-import { Search, Calendar, MapPin, Award, Users, Filter, ArrowUpDown } from 'lucide-react';
+import { Search, Calendar, MapPin, Award, Users, Filter, ArrowUpDown, Check } from 'lucide-react';
 
 interface ActivitiesListProps {
   activities: Activity[];
   onSelectActivity: (id: string) => void;
   onNavigateToRegistration: (id: string) => void;
+  registeredActivityIds: string[];
 }
 
-type SortOption = 'DEFAULT' | 'POINTS_DESC' | 'POINTS_ASC' | 'DEADLINE_ASC' | 'QUOTA_LEFT';
+type SortOption = 'DEFAULT' | 'DEADLINE_ASC' | 'QUOTA_LEFT';
 
-export default function ActivitiesList({ activities, onSelectActivity, onNavigateToRegistration }: ActivitiesListProps) {
+export default function ActivitiesList({ 
+  activities, 
+  onSelectActivity, 
+  onNavigateToRegistration,
+  registeredActivityIds 
+}: ActivitiesListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<SortOption>('DEFAULT');
+  const [currentTab, setCurrentTab] = useState<'ACTIVE' | 'ARCHIVED'>('ACTIVE');
 
   // Categories helper
   const categoriesList = useMemo(() => [
-    { value: 'ALL', label: 'Semu' },
-    { value: ActivityCategory.ORGANIZATION, label: 'Organisasi' },
-    { value: ActivityCategory.ACADEMIC, label: 'Keilmuan' },
-    { value: ActivityCategory.COMMUNITY, label: 'Pengabdian' },
-    { value: ActivityCategory.ARTS, label: 'Seni' },
+    { value: 'ALL', label: 'Semua Kategori' },
+    { value: ActivityCategory.ORGANIZATION, label: 'Organisasi & Kepemimpinan' },
+    { value: ActivityCategory.ACADEMIC, label: 'Keilmuan & Penalaran' },
+    { value: ActivityCategory.COMMUNITY, label: 'Pengabdian Masyarakat' },
+    { value: ActivityCategory.ARTS, label: 'Seni & Budaya' },
     { value: ActivityCategory.SPORTS, label: 'Olahraga' }
   ], []);
 
   // Filter & Sort Logic
   const filteredActivities = useMemo(() => {
     let result = [...activities];
+
+    // Filter by tab (ACTIVE or ARCHIVED)
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    result = result.filter(act => {
+      const deadlineDate = new Date(act.registrationDeadline);
+      const isPast = deadlineDate.getTime() < today.getTime();
+      return currentTab === 'ACTIVE' ? !isPast : isPast;
+    });
 
     // Search filter
     if (searchTerm.trim() !== '') {
@@ -53,12 +69,6 @@ export default function ActivitiesList({ activities, onSelectActivity, onNavigat
 
     // Sorting
     switch (sortBy) {
-      case 'POINTS_DESC':
-        result.sort((a, b) => b.skpiPoints - a.skpiPoints);
-        break;
-      case 'POINTS_ASC':
-        result.sort((a, b) => a.skpiPoints - b.skpiPoints);
-        break;
       case 'DEADLINE_ASC':
         result.sort((a, b) => new Date(a.registrationDeadline).getTime() - new Date(b.registrationDeadline).getTime());
         break;
@@ -71,7 +81,7 @@ export default function ActivitiesList({ activities, onSelectActivity, onNavigat
     }
 
     return result;
-  }, [activities, searchTerm, selectedCategory, selectedStatus, sortBy]);
+  }, [activities, searchTerm, selectedCategory, selectedStatus, sortBy, currentTab]);
 
   // Color mapper for status
   const getStatusStyle = (status: ActivityStatus) => {
@@ -95,13 +105,47 @@ export default function ActivitiesList({ activities, onSelectActivity, onNavigat
     <div id="activities-panel" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 text-left">
       
       {/* Title & Stats Summary */}
-      <div className="mb-8 border-b border-gray-100 pb-5">
+      <div className="mb-6 border-b border-gray-100 pb-5">
         <h2 className="text-2xl font-extrabold tracking-tight text-univ-blue-800 sm:text-3xl">
           Katalog Aktivitas Lengkap
         </h2>
         <p className="text-sm text-gray-500 mt-1">
           Dapatkan pengalaman lapangan berharga dan kumpulkan sertifikat resmi keikutsertaan Anda di Universitas Anak Bangsa.
         </p>
+      </div>
+
+      {/* Category / Scheduling Tabs */}
+      <div className="flex border-b border-gray-200 mb-8 overflow-x-auto whitespace-nowrap">
+        <button
+          onClick={() => setCurrentTab('ACTIVE')}
+          className={`px-6 py-3.5 text-sm font-extrabold border-b-2 transition-all cursor-pointer flex items-center space-x-2 shrink-0 ${
+            currentTab === 'ACTIVE'
+              ? 'border-univ-blue-800 text-univ-blue-800'
+              : 'border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <span>Kegiatan Aktif</span>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+            currentTab === 'ACTIVE' ? 'bg-univ-orange-100 text-univ-orange-700' : 'bg-slate-100 text-gray-400'
+          }`}>
+            {activities.filter(act => new Date(act.registrationDeadline).getTime() >= new Date().setHours(0,0,0,0)).length}
+          </span>
+        </button>
+        <button
+          onClick={() => setCurrentTab('ARCHIVED')}
+          className={`px-6 py-3.5 text-sm font-extrabold border-b-2 transition-all cursor-pointer flex items-center space-x-2 shrink-0 ${
+            currentTab === 'ARCHIVED'
+              ? 'border-univ-blue-800 text-univ-blue-800'
+              : 'border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <span>Arsip Kegiatan (Sudah Lewat)</span>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+            currentTab === 'ARCHIVED' ? 'bg-univ-orange-100 text-univ-orange-700' : 'bg-slate-100 text-gray-400'
+          }`}>
+            {activities.filter(act => new Date(act.registrationDeadline).getTime() < new Date().setHours(0,0,0,0)).length}
+          </span>
+        </button>
       </div>
 
       {/* Advanced Filters Block */}
@@ -125,17 +169,14 @@ export default function ActivitiesList({ activities, onSelectActivity, onNavigat
           <div className="md:col-span-3 relative">
             <Filter className="absolute top-3.5 left-3.5 h-4 w-4 text-gray-400" />
             <select
-              id="status-filter"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              id="category-filter"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full appearance-none rounded-xl border border-gray-200 bg-slate-50 pl-11 pr-8 py-3 text-sm font-semibold text-gray-600 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
             >
-              <option value="ALL">Semua Status Pendaftaran</option>
-              <option value={ActivityStatus.OPEN}>{ActivityStatus.OPEN}</option>
-              <option value={ActivityStatus.UPCOMING}>{ActivityStatus.UPCOMING}</option>
-              <option value={ActivityStatus.ONGOING}>{ActivityStatus.ONGOING}</option>
-              <option value={ActivityStatus.COMPLETED}>{ActivityStatus.COMPLETED}</option>
-              <option value={ActivityStatus.CLOSED}>{ActivityStatus.CLOSED}</option>
+              {categoriesList.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
             </select>
           </div>
 
@@ -180,6 +221,7 @@ export default function ActivitiesList({ activities, onSelectActivity, onNavigat
           {filteredActivities.map((act) => {
             const seatsLeft = act.quota - act.registeredCount;
             const percentageUsed = Math.min(Math.round((act.registeredCount / act.quota) * 100), 100);
+            const hasRegistered = registeredActivityIds.includes(act.id);
 
             return (
               <div
@@ -210,7 +252,7 @@ export default function ActivitiesList({ activities, onSelectActivity, onNavigat
                   {/* Bubble points counter overlay bottom-left */}
                   <div className="absolute bottom-3 left-3 flex items-center space-x-1 rounded-lg bg-univ-orange-500/90 backdrop-blur-sm border border-univ-orange-600/30 px-2.5 py-1 text-xs font-extrabold text-white shadow">
                     <Award className="h-3.5 w-3.5 text-white" />
-                    <span>E-Sertifikat</span>
+                    <span>E-Sertifikat Resmi</span>
                   </div>
                 </div>
 
@@ -273,7 +315,12 @@ export default function ActivitiesList({ activities, onSelectActivity, onNavigat
                       Lihat Detail
                     </button>
 
-                    {act.status === ActivityStatus.OPEN && seatsLeft > 0 ? (
+                    {hasRegistered ? (
+                      <div className="rounded-xl bg-green-50 border border-green-200 py-2.5 text-center text-xs font-extrabold text-green-700 flex items-center justify-center space-x-1">
+                        <Check className="h-3.5 w-3.5 text-green-600" />
+                        <span>Anda Sudah Mendaftar</span>
+                      </div>
+                    ) : act.status === ActivityStatus.OPEN && seatsLeft > 0 ? (
                       <button
                         onClick={() => onNavigateToRegistration(act.id)}
                         className="rounded-xl bg-univ-orange-500 py-2.5 text-center text-xs font-extrabold text-white hover:bg-univ-orange-600 hover:shadow-md transition-all cursor-pointer"

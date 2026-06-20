@@ -29,16 +29,6 @@ export default function Hero({ onNavigate, title, subtitle }: HeroProps) {
         <div className="absolute inset-0 bg-gradient-to-r from-univ-blue-900 via-univ-blue-900/90 to-transparent"></div>
       </div>
 
-      {/* Intact Logo Watermark: shifted left, object-contain, low opacity, no clashing */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-44 h-44 sm:w-64 sm:h-64 lg:w-96 lg:h-96 opacity-10 pointer-events-none transition-all duration-500 hover:opacity-15">
-        <img
-          src={logoImgSrc}
-          alt="UAB Watermark Logo"
-          className="w-full h-full object-contain"
-          referrerPolicy="no-referrer"
-        />
-      </div>
-
       <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
@@ -86,19 +76,7 @@ export default function Hero({ onNavigate, title, subtitle }: HeroProps) {
           </div>
 
           {/* Highlights / Micro-stats Banner */}
-          <div className="lg:col-span-5 grid grid-cols-2 gap-4 lg:pl-6">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-all hover:bg-white/10">
-              <span className="text-3xl sm:text-4xl font-extrabold text-univ-orange-500 block font-mono">15+</span>
-              <span className="text-sm font-bold text-white uppercase tracking-wider mt-1 block">UKM Aktif</span>
-              <p className="text-xs text-gray-400 mt-2">Unit Kegiatan Mahasiswa siap mewadahi aspirasi minat dan bakat Anda.</p>
-            </div>
-            
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-all hover:bg-white/10">
-              <span className="text-3xl sm:text-4xl font-extrabold text-univ-orange-500 block font-mono">240+</span>
-              <span className="text-sm font-bold text-white uppercase tracking-wider mt-1 block">Agenda Setahun</span>
-              <p className="text-xs text-gray-400 mt-2">Pilihan pelatihan, seminar, bakti sosial, dan perlombaan dinamis.</p>
-            </div>
-
+          <div className="lg:col-span-5 grid grid-cols-1 gap-4 lg:pl-6">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-all hover:bg-white/10">
               <span className="text-3xl sm:text-4xl font-extrabold text-univ-orange-500 block font-mono">1.2K+</span>
               <span className="text-sm font-bold text-white uppercase tracking-wider mt-1 block">Mahasiswa Aktif</span>

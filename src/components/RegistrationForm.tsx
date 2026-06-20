@@ -5,11 +5,12 @@ import { ArrowLeft, Check, AlertCircle, Sparkles, Building2, User2 } from 'lucid
 interface RegistrationFormProps {
   activity: Activity;
   student: StudentProfile;
+  registrations: Registration[];
   onBack: () => void;
   onSubmit: (registrationData: Omit<Registration, 'id' | 'registrationDate' | 'status'>) => void;
 }
 
-export default function RegistrationForm({ activity, student, onBack, onSubmit }: RegistrationFormProps) {
+export default function RegistrationForm({ activity, student, registrations = [], onBack, onSubmit }: RegistrationFormProps) {
   // Controlled fields (prefilled from student structure)
   const [name, setName] = useState(student.name);
   const [nim, setNim] = useState(student.nim);
@@ -22,8 +23,18 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
+  // Check for duplicate registrations for this activity and student NIM
+  const isDuplicate = registrations.some(
+    reg => reg.activityId === activity.id && reg.studentNim.trim() === nim.trim()
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isDuplicate) {
+      alert("Pendaftaran Ganda Terdeteksi: Anda sudah terdaftar atau mengajukan pendaftaran untuk kegiatan ini.");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -57,7 +68,7 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
           
           <div className="space-y-2">
             <span className="inline-block rounded-full bg-univ-blue-50 px-3 py-1 text-xs font-bold text-univ-blue-800 uppercase">
-              UAB Academic Registrar
+              UNABA Academic Registrar
             </span>
             <h3 className="text-2xl font-extrabold text-gray-950">Pendaftaran Berhasil Dikirim!</h3>
             <p className="text-sm text-gray-500 leading-relaxed max-w-md mx-auto">
@@ -124,6 +135,17 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
         {/* Form elements body */}
         <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
           
+          {/* Duplicate Registration Blocked Warning */}
+          {isDuplicate && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-start space-x-2.5 animate-pulse">
+              <AlertCircle className="h-5 w-5 shrink-0 text-rose-600 mt-0.5 animate-bounce" />
+              <div className="space-y-1">
+                <span className="font-extrabold block uppercase tracking-wider text-rose-900 text-[11px]">Mahasiswa Sudah Terdaftar</span>
+                Peringatan: Mahasiswa dengan NIM <strong className="font-mono text-rose-950 font-extrabold">{nim}</strong> ini sudah mengajukan pendaftaran atau sudah disetujui (APPROVED/PENDING) pada kegiatan <strong className="font-bold text-rose-950">{activity.title}</strong>. Anda tidak dapat melakukan pendaftaran ganda/dua kali untuk kegiatan yang sama. Silakan periksa halaman <strong className="font-bold whitespace-nowrap">"Pendaftaran Saya"</strong>.
+              </div>
+            </div>
+          )}
+
           {/* Identity Pre-filled Notice */}
           <div className="rounded-xl border border-sky-100 bg-sky-50/50 p-4 text-xs text-univ-blue-900 flex items-start space-x-2.5">
             <AlertCircle className="h-5 w-5 shrink-0 text-univ-blue-700 mt-0.5" />
@@ -214,7 +236,7 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama.mahasiswa@student.uab.ac.id"
+                placeholder="nama.mahasiswa@student.unaba.ac.id"
                 className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none font-mono"
               />
             </div>
@@ -248,10 +270,14 @@ export default function RegistrationForm({ activity, student, onBack, onSubmit }
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="rounded-xl bg-univ-orange-500 py-3.5 text-center text-sm font-extrabold text-white hover:bg-univ-orange-600 transition-all cursor-pointer sm:px-8 shadow disabled:opacity-75 disabled:cursor-not-allowed"
+              disabled={isSubmitting || isDuplicate}
+              className={`rounded-xl py-3.5 text-center text-sm font-extrabold text-white transition-all sm:px-8 shadow disabled:opacity-75 disabled:cursor-not-allowed ${
+                isDuplicate 
+                  ? 'bg-rose-450 hover:bg-rose-500 bg-rose-500/80' 
+                  : 'bg-univ-orange-500 hover:bg-univ-orange-600 cursor-pointer'
+              }`}
             >
-              {isSubmitting ? 'Mengirim Data...' : 'Kirim Pendaftaran'}
+              {isSubmitting ? 'Mengirim Data...' : isDuplicate ? 'Tidak Bisa Daftar Ganda' : 'Kirim Pendaftaran'}
             </button>
           </div>
 

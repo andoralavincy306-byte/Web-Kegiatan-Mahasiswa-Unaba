@@ -7,9 +7,11 @@ interface ProfileSectionProps {
   registrations: Registration[];
   activities: Activity[];
   onViewActivityDetails: (id: string) => void;
+  plhRektorName: string;
+  onLogout?: () => void;
 }
 
-export default function ProfileSection({ student, registrations, activities, onViewActivityDetails }: ProfileSectionProps) {
+export default function ProfileSection({ student, registrations, activities, onViewActivityDetails, plhRektorName, onLogout }: ProfileSectionProps) {
   // Filter registrations belonging to this student (by NIM)
   const studentRegistrations = registrations.filter(r => r.studentNim === student.nim);
 
@@ -36,6 +38,17 @@ export default function ProfileSection({ student, registrations, activities, onV
       `;
     }).join('');
 
+    const formattedRealTime = new Date().toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }) + ' - Pukul ' + new Date().toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }) + ' WIB';
+
     printWindow.document.write(`
       <html>
         <head>
@@ -53,7 +66,7 @@ export default function ProfileSection({ student, registrations, activities, onV
           <table class="header-table">
             <tr>
               <td style="width: 80px;">
-                <div style="width: 60px; height: 60px; background-color: #0a3d62; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ff7f3f; font-size: 24px; font-weight: bold; text-align: center; line-height: 60px;">UAB</div>
+                <div style="width: 60px; height: 60px; background-color: #0a3d62; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ff7f3f; font-size: 20px; font-weight: bold; text-align: center; line-height: 60px;">UNABA</div>
               </td>
               <td>
                 <h2 style="margin: 0; color: #0a3d62;">UNIVERSITAS ANAK BANGSA</h2>
@@ -82,8 +95,8 @@ export default function ProfileSection({ student, registrations, activities, onV
             <tr>
               <td style="padding: 4px 0; font-weight: bold;">Status Akademik</td>
               <td style="padding: 4px 0; color: green; font-weight: bold;">: AKTIF</td>
-              <td style="padding: 4px 0; font-weight: bold;">Tanggal Cetak</td>
-              <td style="padding: 4px 0; font-family: monospace;">: ${new Date().toLocaleDateString('id-ID')}</td>
+              <td style="padding: 4px 0; font-weight: bold;">Tanggal & Jam Cetak</td>
+              <td style="padding: 4px 0; font-family: monospace;">: ${formattedRealTime}</td>
             </tr>
           </table>
 
@@ -107,15 +120,234 @@ export default function ProfileSection({ student, registrations, activities, onV
               <div class="stamp">DOKUMEN SAH DIGITAL</div>
             </div>
             <div style="text-align: center; min-width: 250px;">
-              <p style="margin: 0 0 70px 0; font-size: 14px;">Kepala Biro Kemahasiswaan UAB,</p>
-              <p style="margin: 0; font-weight: bold; text-decoration: underline;">Dr. Ir. H. Mulyono, M.T.</p>
-              <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b; font-family: monospace;">NIP. 197405122002121004</p>
+              <p style="margin: 0 0 70px 0; font-size: 14px;">PLH Rektor Universitas Anak Bangsa,</p>
+              <p style="margin: 0; font-weight: bold; text-decoration: underline;">${plhRektorName}</p>
+              <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b; font-family: monospace;">NIP. 196908181995031002</p>
             </div>
           </div>
 
           <div class="seal">
-            Dokumen ini dicetak secara mandiri melalui Sistem Informasi Portal Kegiatan Mahasiswa Universitas Anak Bangsa (UAB Student Portal).<br />
+            Dokumen ini dicetak secara mandiri melalui Sistem Informasi Portal Kegiatan Mahasiswa Universitas Anak Bangsa (UNABA Student Portal).<br />
             Semua data aktivitas yang berstatus terverifikasi telah disinkronisasikan ke sistem SIAKAD kampus secara sah.
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const handlePrintIndividualCertificate = (reg: Registration) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Gagal membuka jendela cetak. Pastikan pop-up diperbolehkan di browser Anda.');
+      return;
+    }
+
+    const activity = activities.find(a => a.id === reg.activityId);
+    const category = activity ? activity.category : 'Umum';
+    const points = activity ? activity.skpiPoints : 10;
+    const location = activity ? activity.location : 'Kampus Universitas Anak Bangsa';
+    const eventTime = activity ? activity.eventDate : reg.registrationDate;
+
+    const formattedRealTime = new Date().toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }) + ' - Pukul ' + new Date().toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }) + ' WIB';
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>E-Sertifikat - ${student.name} - ${reg.activityTitle}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Playfair+Display:ital,wght@0,600;0,800;1,500&family=Inter:wght@400;600;700&display=swap');
+            
+            body { 
+              margin: 0; 
+              padding: 0; 
+              font-family: 'Inter', sans-serif; 
+              color: #1e293b; 
+              background-color: #f8fafc;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+            }
+            .cert-container { 
+              width: 880px; 
+              height: 600px; 
+              padding: 40px; 
+              box-sizing: border-box;
+              border: 18px double #d4af37; 
+              background: #ffffff;
+              background-image: radial-gradient(#fcfbf7 1.5px, transparent 1.5px), radial-gradient(#fcfbf7 1.5px, #ffffff 1.5px);
+              background-size: 60px 60px;
+              background-position: 0 0, 30px 30px;
+              position: relative;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+            }
+            .inner-border {
+              position: absolute;
+              top: 10px;
+              left: 10px;
+              right: 10px;
+              bottom: 10px;
+              border: 2px solid #002d62;
+              pointer-events: none;
+            }
+            .header { 
+              text-align: center; 
+              margin-top: 10px;
+            }
+            .univ-title { 
+              font-family: 'Cinzel', serif; 
+              color: #002d62; 
+              font-size: 20px; 
+              font-weight: 850;
+              letter-spacing: 2px;
+              margin: 0;
+            }
+            .univ-sub { 
+              font-size: 10px; 
+              letter-spacing: 3px; 
+              color: #64748b; 
+              margin: 5px 0 15px 0;
+              text-transform: uppercase;
+              font-weight: 700;
+            }
+            .cert-title { 
+              font-family: 'Playfair Display', serif; 
+              color: #ff7f3f; 
+              font-size: 34px; 
+              font-weight: 800;
+              margin: 10px 0 5px 0;
+              letter-spacing: 1px;
+            }
+            .cert-desc { 
+              font-family: 'Playfair Display', serif; 
+              font-style: italic; 
+              font-size: 14px; 
+              color: #475569; 
+              margin: 0;
+            }
+            .student-name { 
+              font-family: 'Playfair Display', serif; 
+              font-size: 28px; 
+              font-weight: 800; 
+              color: #002d62; 
+              margin: 15px 0 0 0;
+              text-decoration: underline;
+              text-underline-offset: 8px;
+              text-decoration-color: #d4af37;
+            }
+            .student-nim { 
+              font-family: monospace; 
+              font-size: 13px; 
+              color: #475569; 
+              margin: 5px 0 15px 0;
+              font-weight: 600;
+            }
+            .participation-text { 
+              font-size: 13px; 
+              color: #475569; 
+              max-width: 680px; 
+              margin: 0 auto; 
+              line-height: 1.6;
+              text-align: center;
+            }
+            .activity-title { 
+              font-size: 16px; 
+              font-weight: 800; 
+              color: #002d62; 
+              margin: 6px 0;
+            }
+            .points-badge {
+              display: inline-block;
+              background-color: #fef3c7;
+              border: 1px solid #fcd34d;
+              color: #92400e;
+              padding: 4px 10px;
+              border-radius: 9999px;
+              font-size: 11px;
+              font-weight: 750;
+              margin-top: 5px;
+            }
+            .footer-sig { 
+              margin-top: 25px; 
+              display: flex; 
+              justify-content: space-between; 
+              align-items: flex-end;
+              padding: 0 40px;
+            }
+            .stamp-box { 
+              border: 2px dashed #ff7f3f; 
+              color: #ff7f3f; 
+              padding: 6px 14px; 
+              font-size: 11px; 
+              font-weight: 800; 
+              text-transform: uppercase;
+              transform: rotate(-4deg); 
+              margin-bottom: 5px;
+            }
+            .signer { 
+              text-align: center; 
+              min-width: 240px;
+            }
+            .printed-time {
+              font-family: monospace;
+              font-size: 9px;
+              color: #94a3b8;
+              text-align: center;
+              margin-top: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="cert-container">
+            <div class="inner-border"></div>
+            
+            <div class="header">
+              <p class="univ-title">UNIVERSITAS ANAK BANGSA</p>
+              <p class="univ-sub">Biro Kegiatan Mahasiswa</p>
+              <hr style="width: 150px; border: 1px solid #d4af37; margin: 0 auto 15px auto;" />
+              <h2 class="cert-title">SERTIFIKAT ELEKTRONIK</h2>
+              <p class="cert-desc">diberikan penghargaan setinggi-tingginya kepada:</p>
+              
+              <h3 class="student-name">${student.name}</h3>
+              <p class="student-nim">NIM: ${student.nim} • Program Studi: ${student.department}</p>
+            </div>
+
+            <p class="participation-text">
+              Atas partisipasi aktif, dedikasi, serta kelulusan verifikasi berkas dalam menyukseskan program:<br />
+              <strong class="activity-title">"${reg.activityTitle}"</strong><br />
+              yang diselenggarakan di <span style="font-weight: 600;">${location}</span> pada <span style="font-weight: 600;">${eventTime}</span>.
+            </p>
+
+            <div class="footer-sig">
+              <div>
+                <div class="stamp-box">VERIFIED E-SIGNATURE</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 5px; font-weight: 600; font-family: monospace;">UUID: ${reg.id}</div>
+              </div>
+              
+              <div class="signer">
+                <p style="margin: 0 0 55px 0; font-size: 12px; font-weight: 600; color: #475569;">PLH Rektor Universitas Anak Bangsa,</p>
+                <p style="margin: 0; font-weight: 800; font-size: 14px; text-decoration: underline; color: #002d62;">${plhRektorName}</p>
+                <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-family: monospace; font-weight: 500;">NIP. 196908181995031002</p>
+              </div>
+            </div>
+
+            <div class="printed-time">
+              Dokumen resmi elektronik ditarik realtime pada: ${formattedRealTime}
+            </div>
           </div>
         </body>
       </html>
@@ -222,6 +454,19 @@ export default function ProfileSection({ student, registrations, activities, onV
                 </span>
                 <span className="inline-flex rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-700">Aktif</span>
               </div>
+              
+              {onLogout && (
+                <div className="pt-4 border-t border-slate-100 mt-2">
+                  <button
+                    onClick={() => {
+                      onLogout();
+                    }}
+                    className="w-full text-center py-2.5 rounded-xl border border-rose-200 bg-rose-50/50 hover:bg-rose-50 text-xs font-bold text-rose-600 hover:text-rose-700 transition-all cursor-pointer flex items-center justify-center space-x-1.5 shadow-sm"
+                  >
+                    <span>Log Out (Ganti Akun Gmail)</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -287,8 +532,8 @@ export default function ProfileSection({ student, registrations, activities, onV
                           
                           {reg.status === 'APPROVED' ? (
                             <button
-                              onClick={handlePrintTranscript}
-                              className="text-xs font-bold text-univ-blue-700 hover:text-univ-blue-900 inline-flex items-center space-x-1 border border-univ-blue-100 rounded-lg px-2.5 py-1.5 bg-white shadow-sm hover:shadow"
+                              onClick={() => handlePrintIndividualCertificate(reg)}
+                              className="text-xs font-bold text-univ-orange-700 hover:text-univ-orange-900 inline-flex items-center space-x-1 border border-univ-orange-100 rounded-lg px-2.5 py-1.5 bg-white shadow-sm hover:shadow hover:bg-univ-orange-50/10 cursor-pointer transition-all"
                             >
                               <Printer className="h-3.5 w-3.5" />
                               <span>Cetak Sertifikat</span>

@@ -4,7 +4,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
   {
     id: 'act-1',
     title: 'Latihan Kepemimpinan Manajemen Mahasiswa (LKMM-TD) 2026',
-    description: 'Pelatihan dasar kepemimpinan dan manajemen organisasi untuk membekali mahasiswa UAB menjadi pemimpin masa depan yang berintegritas.',
+    description: 'Pelatihan dasar kepemimpinan dan manajemen organisasi untuk membekali mahasiswa UNABA menjadi pemimpin masa depan yang berintegritas.',
     longDescription: 'Latihan Kepemimpinan Manajemen Mahasiswa Tingkat Dasar (LKMM-TD) merupakan program wajib bagi fungsionaris organisasi mahasiswa dan sangat disarankan untuk seluruh mahasiswa aktif Universitas Anak Bangsa. Program ini dirancang khusus untuk membekali mahasiswa dengan kemampuan kepemimpinan, manajemen organisasi, penyusunan rencana kerja, serta pengambilan keputusan strategis secara etis dan profesional di lingkungan kampus maupun masyarakat luas.',
     category: ActivityCategory.ORGANIZATION,
     status: ActivityStatus.OPEN,
@@ -35,9 +35,9 @@ export const INITIAL_ACTIVITIES: Activity[] = [
   },
   {
     id: 'act-2',
-    title: 'UAB Badminton Campus Cup XI',
+    title: 'UNABA Badminton Campus Cup XI',
     description: 'Turnamen bulutangkis antar jurusan se-Universitas Anak Bangsa untuk menyalurkan minat, bakat, serta sportivitas antar mahasiswa.',
-    longDescription: 'Ajang bergengsi olahraga tahunan Universitas Anak Bangsa kembali hadir! UAB Badminton Campus Cup ke-11 memperlombakan kategori Tunggal Putra, Tunggal Putri, Ganda Putra, Ganda Putri, dan Ganda Campuran. Tunjukkan sportivitas, pertahankan kehormatan jurusanmu, dan raih total hadiah puluhan juta rupiah serta piala bergilir Rektor UAB.',
+    longDescription: 'Ajang bergengsi olahraga tahunan Universitas Anak Bangsa kembali hadir! UNABA Badminton Campus Cup ke-11 memperlombakan kategori Tunggal Putra, Tunggal Putri, Ganda Putra, Ganda Putri, dan Ganda Campuran. Tunjukkan sportivitas, pertahankan kehormatan jurusanmu, dan raih total hadiah puluhan juta rupiah serta piala bergilir Rektor UNABA.',
     category: ActivityCategory.SPORTS,
     status: ActivityStatus.OPEN,
     skpiPoints: 10,
@@ -46,7 +46,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     eventDate: '2026-07-05 s/d 2026-07-09',
     quota: 64,
     registeredCount: 42,
-    location: 'Gedung Olahraga (GOR) Tri Dharma UAB, Kampus Depok',
+    location: 'Gedung Olahraga (GOR) Tri Dharma UNABA, Kampus Depok',
     benefits: [
       'Sertifikat Kepesertaan Nasional / Universitas',
       'Piala, Medali, dan Uang Pembinaan untuk Juara 1, 2, & 3',
@@ -67,7 +67,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
   {
     id: 'act-3',
     title: 'Kuliah Kerja Nyata (KKN) Tematik Tanggap Bencana & Sanitasi',
-    description: 'Aksi nyata pengabdian mahasiswa dalam mengedukasi mitigasi bencana alam dan membangun infrastruktur sanitasi di Desa Sukamulya.',
+    description: 'Aksi nyata pengabdian mahasiswa dalam mengedukasi mitigasi bencana alam and membangun infrastruktur sanitasi di Desa Sukamulya.',
     longDescription: 'KKN Tematik ini merupakan wujud nyata Tridharma Perguruan Tinggi dalam pengabdian kepada masyarakat. Mahasiswa dari berbagai disiplin ilmu akan bekerja sama selama 1 bulan penuh di lokasi sasaran untuk melaksanakan program peningkatan kesadaran tanggap bencana, pembangunan modul sanitasi air bersih murni, serta mengajar di sekolah alam dasar setempat.',
     category: ActivityCategory.COMMUNITY,
     status: ActivityStatus.UPCOMING,
@@ -86,7 +86,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
       'Relasi Hangat bersama Pejabat Daerah & Masyarakat Binaan'
     ],
     requirements: [
-      'Mahasiswa UAB Aktif minimal Semester 5',
+      'Mahasiswa UNABA Aktif minimal Semester 5',
       'IPK minimal 3.00 pada portal akademik',
       'Surat persetujuan dari Orang Tua / Wali (Ttd & bermaterai Rp 10.000)',
       'Lolos seleksi berkas administrasi dan wawancara internal tim dosen pembimbing'
@@ -109,7 +109,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     eventDate: '2026-06-18 s/d 2026-06-20',
     quota: 300,
     registeredCount: 300,
-    location: 'Teater Terbuka & Galeri Seni UAB, Kampus Jakarta',
+    location: 'Teater Terbuka & Galeri Seni UNABA, Kampus Jakarta',
     benefits: [
       'Apresiasi Karakter Bidang Kesenian & Budaya',
       'Akses Masuk Gratis untuk Seluruh Penonton Mahasiswa',
@@ -122,7 +122,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
       'Mematuhi protokol tata tertib keamanan & ketertiban Auditorium Teater'
     ],
     contactPerson: {
-      name: 'Humas UKM Kesenian UAB',
+      name: 'Humas UKM Kesenian UNABA',
       phone: '0899-7777-6666'
     }
   },
@@ -141,7 +141,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     registeredCount: 68,
     location: 'Gedung Sinergi Riset Lantai Dasar, Kampus Depok',
     benefits: [
-      'Sertifikat Finalis / Juara Nasional dari Rektorat UAB',
+      'Sertifikat Finalis / Juara Nasional dari Rektorat UNABA',
       'Total Hadiah Juara Rp 25.000.000 + Plakat Penghargaan',
       'Prosiding Ber-ISSN untuk Abstrak yang Layak Publikasi',
       'Sertifikat Prestasi Kategori Lomba Keilmuan'
@@ -153,7 +153,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
       'Surat Orisinalitas bermaterai untuk menjamin karya bebas plagiasi'
     ],
     contactPerson: {
-      name: 'Fakultas Teknik & Riset UAB',
+      name: 'Fakultas Teknik & Riset UNABA',
       phone: '0812-9988-7766'
     }
   },
@@ -170,7 +170,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     eventDate: '2026-05-15',
     quota: 500,
     registeredCount: 500,
-    location: 'Virtual via Zoom Webinar & Live YouTube Humas UAB',
+    location: 'Virtual via Zoom Webinar & Live YouTube Humas UNABA',
     benefits: [
       'E-Sertifikat Kehadiran Peserta Terverifikasi Instan',
       'Materi Paparan Slide Lengkap dari Pembicara Berpengaruh',
@@ -178,11 +178,11 @@ export const INITIAL_ACTIVITIES: Activity[] = [
       'Sertifikat Elektronik Seminar Akademik Terpadu'
     ],
     requirements: [
-      'Telah mendaftar akun portal mahasiswa UAB',
+      'Telah mendaftar akun portal mahasiswa UNABA',
       'Mengisi kuesioner evaluasi acara sebelum sertifikat dirilis'
     ],
     contactPerson: {
-      name: 'Biro Admin Akademik UAB',
+      name: 'Biro Admin Akademik UNABA',
       phone: '0821-2233-4455'
     }
   }
@@ -191,27 +191,97 @@ export const INITIAL_ACTIVITIES: Activity[] = [
 export const INITIAL_STUDENT: StudentProfile = {
   name: 'Andora Lavincy',
   nim: '10123045',
-  email: 'andora.lavincy@student.uab.ac.id',
+  email: 'andora.lavincy@student.unaba.ac.id',
   department: 'Sistem Informasi',
   semester: 2,
   skpiPointsAccumulated: 0,
   registeredActivityIds: [],
-  faculty: 'Fakultas Sains dan Teknik'
+  faculty: 'Fakultas Psikologi dan Sains'
 };
 
 export const INITIAL_REGISTRATIONS: Registration[] = [
   {
+    id: 'reg-mock-1',
+    activityId: 'act-1',
+    activityTitle: 'Latihan Kepemimpinan Manajemen Mahasiswa (LKMM-TD) 2026',
+    studentName: 'Ahmad Fauzi',
+    studentNim: '10123001',
+    studentEmail: 'ahmad.fauzi@student.unaba.ac.id',
+    studentPhone: '0812-1111-2222',
+    studentDepartment: 'Sistem Informasi',
+    studentSemester: 2,
+    uploadedKtmUrl: 'ktm_ahmad_fauzi.jpg',
+    registrationDate: '2026-06-18 10:00',
+    status: 'APPROVED'
+  },
+  {
+    id: 'reg-mock-2',
+    activityId: 'act-1',
+    activityTitle: 'Latihan Kepemimpinan Manajemen Mahasiswa (LKMM-TD) 2026',
+    studentName: 'Siti Aminah',
+    studentNim: '10123005',
+    studentEmail: 'siti.aminah@student.unaba.ac.id',
+    studentPhone: '0812-2222-3333',
+    studentDepartment: 'Sistem Informasi',
+    studentSemester: 4,
+    uploadedKtmUrl: 'ktm_siti_aminah.jpg',
+    registrationDate: '2026-06-18 14:15',
+    status: 'APPROVED'
+  },
+  {
     id: 'reg-mock-3',
     activityId: 'act-2',
-    activityTitle: 'UAB Badminton Campus Cup XI',
+    activityTitle: 'UNABA Badminton Campus Cup XI',
     studentName: 'Siti Rahmawati',
     studentNim: '10123180',
-    studentEmail: 'siti.rahma@student.uab.ac.id',
+    studentEmail: 'siti.rahma@student.unaba.ac.id',
     studentPhone: '0857-8899-7766',
     studentDepartment: 'Kesehatan Masyarakat',
     studentSemester: 4,
     uploadedKtmUrl: 'ktm_siti_rahma.jpg',
     registrationDate: '2026-06-19 08:30',
     status: 'PENDING'
+  },
+  {
+    id: 'reg-mock-4',
+    activityId: 'act-2',
+    activityTitle: 'UNABA Badminton Campus Cup XI',
+    studentName: 'Putra Pratama',
+    studentNim: '10123012',
+    studentEmail: 'putra.pratama@student.unaba.ac.id',
+    studentPhone: '0813-4455-6677',
+    studentDepartment: 'Manajemen',
+    studentSemester: 6,
+    uploadedKtmUrl: 'ktm_putra.jpg',
+    registrationDate: '2026-06-19 11:45',
+    status: 'APPROVED'
+  },
+  {
+    id: 'reg-mock-5',
+    activityId: 'act-5',
+    activityTitle: 'Lomba Karya Tulis Ilmiah Nasional (LKTIN) Anak Bangsa 2026',
+    studentName: 'Randi Wijaya',
+    studentNim: '10123089',
+    studentEmail: 'randi.wijaya@student.unaba.ac.id',
+    studentPhone: '0852-9988-7766',
+    studentDepartment: 'Sistem Informasi',
+    studentSemester: 2,
+    uploadedKtmUrl: 'ktm_randi.jpg',
+    registrationDate: '2026-06-17 09:12',
+    status: 'APPROVED'
+  },
+  {
+    id: 'reg-mock-6',
+    activityId: 'act-5',
+    activityTitle: 'Lomba Karya Tulis Ilmiah Nasional (LKTIN) Anak Bangsa 2026',
+    studentName: 'Diana Putri',
+    studentNim: '10123098',
+    studentEmail: 'diana.putri@student.unaba.ac.id',
+    studentPhone: '0821-3344-5566',
+    studentDepartment: 'Akuntansi',
+    studentSemester: 4,
+    uploadedKtmUrl: 'ktm_diana.jpg',
+    registrationDate: '2026-06-17 15:40',
+    status: 'APPROVED'
   }
 ];

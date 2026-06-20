@@ -1,14 +1,24 @@
 import React, { useEffect } from 'react';
 import { Activity, ActivityStatus } from '../types';
-import { ArrowLeft, Award, Calendar, MapPin, Users, Phone, ShieldCheck, CheckCircle2, UserCheck, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Award, Calendar, MapPin, Users, Phone, ShieldCheck, CheckCircle2, UserCheck, HelpCircle, Check } from 'lucide-react';
 
 interface ActivityDetailsProps {
   activity: Activity;
   onBack: () => void;
   onRegister: (id: string) => void;
+  hasRegistered: boolean;
+  officialContactName: string;
+  officialContactPhone: string;
 }
 
-export default function ActivityDetails({ activity, onBack, onRegister }: ActivityDetailsProps) {
+export default function ActivityDetails({ 
+  activity, 
+  onBack, 
+  onRegister,
+  hasRegistered,
+  officialContactName,
+  officialContactPhone
+}: ActivityDetailsProps) {
   
   // Requirement: "When the user opens the activity details, the page immediately jumps to the top"
   // Let's add an explicit hook to double guard this scroll behavior on load
@@ -52,104 +62,72 @@ export default function ActivityDetails({ activity, onBack, onRegister }: Activi
                 className="h-full w-full object-cover"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              
-              <div className="absolute bottom-5 left-6 right-6 text-white">
-                <span className="inline-block rounded-lg bg-univ-orange-500 px-3 py-1 text-xs font-bold uppercase tracking-wider mb-2">
+              <div className="absolute top-4 left-4">
+                <span className="inline-block rounded-lg bg-univ-blue-800 px-3 py-1 text-xs font-bold text-white shadow-md">
                   {activity.category}
                 </span>
-                <h1 className="text-xl font-extrabold sm:text-2xl md:text-3xl tracking-tight leading-tight">
-                  {activity.title}
-                </h1>
               </div>
             </div>
 
-            {/* Quick Micro Status Bar inside Header */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 text-sm text-gray-500 border-t border-gray-50 divide-x divide-gray-100">
-              <div className="pl-2">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Sertifikasi Acara</p>
-                <p className="text-base font-extrabold text-univ-orange-600 mt-1 flex items-center space-x-1">
-                  <Award className="h-4 w-4" />
-                  <span>E-Sertifikat Resmi</span>
-                </p>
-              </div>
-              
-              <div className="pl-4">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Batas Pendaftaran</p>
-                <p className="text-sm font-bold text-gray-800 mt-1 font-mono">{activity.registrationDeadline}</p>
-              </div>
+            <div className="p-6 sm:p-8 space-y-4">
+              <h2 className="text-xl font-extrabold text-univ-blue-800 sm:text-2xl md:text-3xl leading-tight">
+                {activity.title}
+              </h2>
 
-              <div className="pl-4">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Status Berkas</p>
-                <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold mt-1 ${
-                  activity.status === 'Pendaftaran Buka' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-700'
-                }`}>
-                  {activity.status}
-                </span>
-              </div>
-
-              <div className="pl-4">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Sisa Kuota</p>
-                <p className="text-sm font-bold text-gray-800 mt-1 font-mono">{seatsLeft} Kursi / {activity.quota}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Deep descriptive section */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm space-y-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-50 pb-2.5">Deskripsi Lengkap Kegiatan</h3>
-              <p className="text-sm text-gray-600 mt-4 leading-relaxed whitespace-pre-line text-justify">
+              <p className="text-gray-650 text-sm leading-relaxed whitespace-pre-line">
                 {activity.longDescription}
               </p>
             </div>
+          </div>
 
-            {/* Core Benefits */}
-            <div className="pt-4">
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-50 pb-2.5">Fasilitas & Manfaat Peserta</h3>
-              <ul className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                {activity.benefits.map((benefit, idx) => (
-                  <li key={idx} className="flex items-start space-x-2.5 text-sm text-gray-650">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-univ-orange-500 mt-0.5" />
-                    <span>{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Prerequisite requirements */}
-            <div className="pt-4">
+          {/* Qualifications & Benefits Layout blocks */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Left Box: Requirements */}
+            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
               <h3 className="text-lg font-bold text-gray-900 border-b border-gray-50 pb-2.5">Kualifikasi & Persyaratan Daftar</h3>
-              <ul className="mt-4 space-y-3">
+              
+              <ul className="space-y-2.5 text-xs text-gray-655 font-medium leading-normal">
                 {activity.requirements.map((req, idx) => (
-                  <li key={idx} className="flex items-start space-x-2.5 text-sm text-gray-650 bg-slate-50 border border-slate-100 rounded-lg p-3">
-                    <ShieldCheck className="h-4.5 w-4.5 shrink-0 text-univ-blue-700 mt-0.5" />
+                  <li key={idx} className="flex items-start space-x-2">
+                    <ShieldCheck className="h-4.5 w-4.5 shrink-0 text-univ-orange-500 mt-0.5" />
                     <span>{req}</span>
                   </li>
                 ))}
               </ul>
             </div>
+
+            {/* Right Box: Benefits */}
+            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
+              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-50 pb-2.5">Fasilitas & Benefit Mahasiswa</h3>
+              
+              <ul className="space-y-2.5 text-xs text-gray-655 font-medium leading-normal">
+                {activity.benefits.map((ben, idx) => (
+                  <li key={idx} className="flex items-start space-x-2">
+                    <UserCheck className="h-4.5 w-4.5 shrink-0 text-univ-blue-700 mt-0.5" />
+                    <span>{ben}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
           </div>
 
         </div>
 
-        {/* Right Side: Quick info widgets and CTA registration form link (4 columns) */}
+        {/* Right Side: Fast Registration widget and details (4 columns on lg) */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* Quick Registry CTA Card */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-5">
-            <h3 className="text-base font-extrabold text-univ-blue-800">Panel Pendaftaran</h3>
+          {/* Action Trigger Card */}
+          <div className="rounded-2xl border border-univ-blue-100 bg-univ-blue-50/15 p-6 shadow-sm ring-1 ring-univ-blue-50/30">
+            <h3 className="text-base font-extrabold text-univ-blue-800 pb-3 border-b border-univ-blue-100/30">Kuota & Status Terisi</h3>
             
-            <div className="space-y-4">
-              <div className="flex justify-between text-xs text-gray-500 font-medium pb-2 border-b border-gray-50">
-                <span>Kuota Total:</span>
-                <span className="font-bold text-gray-900">{activity.quota}</span>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 font-medium pb-2 border-b border-gray-50">
-                <span>Pendaftar Terverifikasi:</span>
+            <div className="my-5 space-y-3 font-medium text-xs">
+              <div className="flex justify-between text-xs text-gray-650">
+                <span>Total Kuota Terdaftar:</span>
                 <span className="font-bold text-gray-900">{activity.registeredCount} orang</span>
               </div>
-              <div className="flex justify-between text-xs text-gray-500 font-medium pb-4 border-b border-gray-50">
+              <div className="flex justify-between text-xs text-gray-505 font-medium pb-4 border-b border-gray-50">
                 <span>Sisa Bangku Tersedia:</span>
                 <span className={`font-bold uppercase ${seatsLeft > 0 ? 'text-green-600' : 'text-rose-600'}`}>
                   {seatsLeft > 0 ? `${seatsLeft} Kursi` : 'Kuota Habis'}
@@ -171,7 +149,12 @@ export default function ActivityDetails({ activity, onBack, onRegister }: Activi
               </div>
             </div>
 
-            {activity.status === 'Pendaftaran Buka' && seatsLeft > 0 ? (
+            {hasRegistered ? (
+              <div className="w-full rounded-xl bg-green-50 border border-green-200 py-3.5 text-center text-sm font-extrabold text-green-700 flex items-center justify-center space-x-1.5 shadow-sm">
+                <Check className="h-4.5 w-4.5 text-green-600" />
+                <span>Anda Sudah Mendaftar</span>
+              </div>
+            ) : activity.status === 'Pendaftaran Buka' && seatsLeft > 0 ? (
               <button
                 id="details-register-btn"
                 onClick={() => onRegister(activity.id)}
@@ -181,7 +164,7 @@ export default function ActivityDetails({ activity, onBack, onRegister }: Activi
               </button>
             ) : (
               <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3.5 text-center text-xs font-bold text-gray-400">
-                Maaf, Pendaftaran Tidak Dibuka
+                Maaf, Pendaftaran Tidak Diperkenankan
               </div>
             )}
           </div>
@@ -191,7 +174,7 @@ export default function ActivityDetails({ activity, onBack, onRegister }: Activi
             <h3 className="text-base font-extrabold text-univ-blue-800 pb-3 border-b border-gray-50">Waktu & Lokasi Kegiatan</h3>
             
             <div className="space-y-4">
-              <div className="flex items-start space-x-3.5 text-gray-650">
+              <div className="flex items-start space-x-3.5 text-gray-655">
                 <Calendar className="h-5 w-5 shrink-0 text-univ-orange-500 mt-0.5" />
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase">Jadwal Pelaksanaan</p>
@@ -219,8 +202,8 @@ export default function ActivityDetails({ activity, onBack, onRegister }: Activi
               </div>
               <div>
                 <p className="text-[11px] font-bold text-gray-400 uppercase">Narahubung Resmi</p>
-                <p className="font-extrabold text-gray-900 mt-0.5">{activity.contactPerson.name}</p>
-                <p className="font-mono text-xs font-semibold text-univ-blue-800 mt-0.5">{activity.contactPerson.phone}</p>
+                <p className="font-extrabold text-gray-900 mt-0.5">{officialContactName}</p>
+                <p className="font-mono text-xs font-semibold text-univ-blue-800 mt-0.5">{officialContactPhone}</p>
               </div>
             </div>
 

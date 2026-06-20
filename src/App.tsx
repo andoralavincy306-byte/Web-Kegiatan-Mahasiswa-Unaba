@@ -8,6 +8,7 @@ import ActivityDetails from './components/ActivityDetails';
 import RegistrationForm from './components/RegistrationForm';
 import ProfileSection from './components/ProfileSection';
 import AdminPanel from './components/AdminPanel';
+import StudentRegisterGate from './components/StudentRegisterGate';
 import Footer from './components/Footer';
 import { motion, AnimatePresence } from 'motion/react';
 import { CalendarDays, ShieldCheck, HelpCircle, ArrowRight, Award, MessageSquare, Sparkles, Megaphone, BookOpen } from 'lucide-react';
@@ -29,6 +30,38 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_STUDENT;
   });
 
+  const [isRegistered, setIsRegistered] = useState<boolean>(() => {
+    return localStorage.getItem('uab_student_registered_v5') === 'true';
+  });
+
+  const handleLogout = () => {
+    localStorage.removeItem('uab_student_registered_v5');
+    localStorage.removeItem('uab_student_profile_v5');
+    localStorage.setItem('uab_just_logged_out_v5', 'true');
+    setIsRegistered(false);
+    setActivePage('HOME');
+  };
+
+  const [plhRektorName, setPlhRektorName] = useState<string>(() => {
+    return localStorage.getItem('uab_plh_rektor_name_v5') || 'Dr. Ir. H. Mulyono, M.T.';
+  });
+
+  const [officialContactName, setOfficialContactName] = useState<string>(() => {
+    return localStorage.getItem('uab_official_contact_name_v5') || 'Biro Kemahasiswaan UNABA';
+  });
+
+  const [officialContactPhone, setOfficialContactPhone] = useState<string>(() => {
+    return localStorage.getItem('uab_official_contact_phone_v5') || '0812-3456-7890';
+  });
+
+  const [officialContactEmail, setOfficialContactEmail] = useState<string>(() => {
+    return localStorage.getItem('uab_official_contact_email_v5') || 'kemahasiswaan@unaba.ac.id';
+  });
+
+  const [officialSecretariatAddress, setOfficialSecretariatAddress] = useState<string>(() => {
+    return localStorage.getItem('uab_official_secretariat_address_v5') || 'Gedung Rektorat Lt. 2, Jalan Jenderal Sudirman Kav. 21, Karet Semanggi, Jakarta Selatan';
+  });
+
   const [activePage, setActivePage] = useState<PageType>(() => {
     const saved = localStorage.getItem('uab_active_page_v5') || localStorage.getItem('ubn_active_page_v5');
     return saved ? (saved as PageType) : 'HOME';
@@ -38,7 +71,7 @@ export default function App() {
     return localStorage.getItem('uab_selected_activity_id_v5') || localStorage.getItem('ubn_selected_activity_id_v5') || '';
   });
 
-  // Sync to localStorage
+  // Intel/Sync to localStorage
   useEffect(() => {
     localStorage.setItem('uab_activities_v5', JSON.stringify(activities));
   }, [activities]);
@@ -49,11 +82,90 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('uab_student_profile_v5', JSON.stringify(student));
-  }, [student]);
+    
+    // Also update this student profile record inside the master registry list
+    if (isRegistered && student && student.nim) {
+      const saved = localStorage.getItem('uab_all_registered_students_v5');
+      if (saved) {
+        try {
+          const list: StudentProfile[] = JSON.parse(saved);
+          const index = list.findIndex(s => s.nim.trim() === student.nim.trim());
+          if (index !== -1) {
+            list[index] = student;
+            localStorage.setItem('uab_all_registered_students_v5', JSON.stringify(list));
+          }
+        } catch (e) {
+          console.error('Error saving updated student to master list:', e);
+        }
+      }
+    }
+  }, [student, isRegistered]);
+
+  useEffect(() => {
+    localStorage.setItem('uab_plh_rektor_name_v5', plhRektorName);
+  }, [plhRektorName]);
+
+  useEffect(() => {
+    localStorage.setItem('uab_official_contact_name_v5', officialContactName);
+  }, [officialContactName]);
+
+  useEffect(() => {
+    localStorage.setItem('uab_official_contact_phone_v5', officialContactPhone);
+  }, [officialContactPhone]);
+
+  useEffect(() => {
+    localStorage.setItem('uab_official_contact_email_v5', officialContactEmail);
+  }, [officialContactEmail]);
+
+  useEffect(() => {
+    localStorage.setItem('uab_official_secretariat_address_v5', officialSecretariatAddress);
+  }, [officialSecretariatAddress]);
 
   useEffect(() => {
     localStorage.setItem('uab_active_page_v5', activePage);
   }, [activePage]);
+
+  // Synchronize active student profile's registeredActivityIds and skpiPointsAccumulated with the registrations database!
+  useEffect(() => {
+    if (!isRegistered || !student || !student.nim) return;
+
+    // Find all registrations for this current student NIM
+    const studentRegs = registrations.filter(r => r.studentNim.trim() === student.nim.trim());
+    const registeredIds = studentRegs.map(r => r.activityId);
+
+    // Calculate verified SKPI points only from APPROVED registrations
+    const approvedRegs = studentRegs.filter(r => r.status === 'APPROVED');
+    let points = 0;
+    approvedRegs.forEach(reg => {
+      const act = activities.find(a => a.id === reg.activityId);
+      if (act) {
+        points += act.skpiPoints;
+      }
+    });
+
+    // To prevent infinite rerendering state loops, check changes first
+    const isIdsSame = JSON.stringify(student.registeredActivityIds) === JSON.stringify(registeredIds);
+    const isPointsSame = student.skpiPointsAccumulated === points;
+
+    if (!isIdsSame || !isPointsSame) {
+      setStudent(prev => ({
+        ...prev,
+        registeredActivityIds: registeredIds,
+        skpiPointsAccumulated: points
+      }));
+    }
+  }, [registrations, activities, student.nim, isRegistered]);
+
+  // Synchronize registered counts dynamically based on verified (APPROVED) registrations
+  const activitiesWithUpdatedCounts = React.useMemo(() => {
+    return activities.map(act => {
+      const approvedCount = registrations.filter(r => r.activityId === act.id && r.status === 'APPROVED').length;
+      return {
+        ...act,
+        registeredCount: approvedCount
+      };
+    });
+  }, [activities, registrations]);
 
   useEffect(() => {
     localStorage.setItem('uab_selected_activity_id_v5', selectedActivityId);
@@ -71,6 +183,18 @@ export default function App() {
 
   // --- Core State Mutators ---
   const handleApproveRegistration = (regId: string) => {
+    const targetReg = registrations.find(r => r.id === regId);
+    if (!targetReg) return;
+
+    const alreadyApproved = registrations.some(
+      r => r.id !== regId && r.activityId === targetReg.activityId && r.studentNim.trim() === targetReg.studentNim.trim() && r.status === 'APPROVED'
+    );
+
+    if (alreadyApproved) {
+      alert(`Gagal Menyetujui: Mahasiswa dengan NIM ${targetReg.studentNim} sudah terverifikasi (APPROVED) aktif untuk kegiatan "${targetReg.activityTitle}". Pendaftaran ganda tidak diperbolehkan!`);
+      return;
+    }
+
     const updatedRegs = registrations.map(reg => {
       if (reg.id === regId) {
         // Also update student SKPI score points
@@ -89,17 +213,6 @@ export default function App() {
               skpiPointsAccumulated: prev.skpiPointsAccumulated + correspondingActivity.skpiPoints
             };
           });
-
-          // Increment registered count inside activity limits
-          setActivities(prevAct => prevAct.map(act => {
-            if (act.id === reg.activityId) {
-              return {
-                ...act,
-                registeredCount: Math.min(act.registeredCount + 1, act.quota)
-              };
-            }
-            return act;
-          }));
         }
         return { ...reg, status: 'APPROVED' as const };
       }
@@ -124,9 +237,44 @@ export default function App() {
     setActivities(prev => [newAct, ...prev]);
   };
 
+  const handleEditActivity = (updatedAct: Activity) => {
+    setActivities(prev => prev.map(act => act.id === updatedAct.id ? updatedAct : act));
+    setRegistrations(prev => prev.map(reg => {
+      if (reg.activityId === updatedAct.id) {
+        return {
+          ...reg,
+          activityTitle: updatedAct.title
+        };
+      }
+      return reg;
+    }));
+  };
+
   const handleDeleteActivity = (id: string) => {
     setActivities(prev => prev.filter(act => act.id !== id));
     setRegistrations(prev => prev.filter(reg => reg.activityId !== id));
+  };
+
+  const handleDeleteRegistration = (regId: string) => {
+    const targetReg = registrations.find(r => r.id === regId);
+    if (!targetReg) return;
+
+    setRegistrations(prev => prev.filter(reg => reg.id !== regId));
+
+    // Keep student profile and SKPI score points in sync if they belong to active student
+    if (targetReg.studentNim.trim() === student.nim.trim()) {
+      setStudent(prev => {
+        // If it was APPROVED, decrement SKPI points
+        const correspondingActivity = activities.find(a => a.id === targetReg.activityId);
+        const pointsToDecrement = (targetReg.status === 'APPROVED' && correspondingActivity) ? correspondingActivity.skpiPoints : 0;
+        
+        return {
+          ...prev,
+          registeredActivityIds: prev.registeredActivityIds.filter(id => id !== targetReg.activityId),
+          skpiPointsAccumulated: Math.max(0, prev.skpiPointsAccumulated - pointsToDecrement)
+        };
+      });
+    }
   };
 
   const handleFormSubmit = (regData: Omit<Registration, 'id' | 'registrationDate' | 'status'>) => {
@@ -149,8 +297,19 @@ export default function App() {
     });
   };
 
-  // Find selected activity helper
-  const selectedActivity = activities.find(a => a.id === selectedActivityId) || activities[0];
+  // Find selected activity helper with dynamically synchronized counts
+  const selectedActivity = activitiesWithUpdatedCounts.find(a => a.id === selectedActivityId) || activitiesWithUpdatedCounts[0];
+
+  if (!isRegistered) {
+    return (
+      <StudentRegisterGate 
+        onRegisterComplete={(newStudent) => {
+          setStudent(newStudent);
+          setIsRegistered(true);
+        }} 
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 font-sans selection:bg-univ-orange-100 selection:text-univ-orange-700">
@@ -160,6 +319,7 @@ export default function App() {
         activePage={activePage} 
         onChangePage={(p) => navigateTo(p)} 
         student={student} 
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area with Smooth Animation Page Transitions */}
@@ -180,7 +340,7 @@ export default function App() {
                 <Hero 
                   onNavigate={(p) => navigateTo(p)}
                   title="Portal Kemahasiswaan Terpadu"
-                  subtitle="Selamat datang di Pusat Informasi Universitas Anak Bangsa (UAB Student Hub)."
+                  subtitle="Selamat datang di Pusat Informasi Universitas Anak Bangsa (UNABA Student Hub)."
                 />
 
                 {/* Featured Highlight Slider List */}
@@ -275,13 +435,13 @@ export default function App() {
                             <div className="flex h-7 w-7 items-center justify-center rounded bg-univ-orange-500/20 text-univ-orange-500 shrink-0">
                               <MessageSquare className="h-4 w-4" />
                             </div>
-                            <span>Hubungi Sekretariat BKA via WhatsApp: 0812-3456-7890</span>
+                            <span>Hubungi {officialContactName} via WhatsApp: {officialContactPhone}</span>
                           </div>
                           <div className="flex items-center space-x-2.5">
                             <div className="flex h-7 w-7 items-center justify-center rounded bg-univ-orange-500/20 text-univ-orange-500 shrink-0">
                               <ShieldCheck className="h-4 w-4" />
                             </div>
-                            <span>Verifikasi Gagal? Email: kemahasiswaan@uab.ac.id</span>
+                            <span>Verifikasi Gagal? Email: {officialContactEmail}</span>
                           </div>
                         </div>
                       </div>
@@ -293,9 +453,10 @@ export default function App() {
 
             {activePage === 'ACTIVITIES' && (
               <ActivitiesList 
-                activities={activities}
+                activities={activitiesWithUpdatedCounts}
                 onSelectActivity={(id) => navigateTo('DETAILS', id)}
                 onNavigateToRegistration={(id) => navigateTo('REGISTRATION', id)}
+                registeredActivityIds={student.registeredActivityIds}
               />
             )}
 
@@ -304,6 +465,9 @@ export default function App() {
                 activity={selectedActivity}
                 onBack={() => navigateTo('ACTIVITIES')}
                 onRegister={(id) => navigateTo('REGISTRATION', id)}
+                hasRegistered={student.registeredActivityIds.includes(selectedActivity.id)}
+                officialContactName={officialContactName}
+                officialContactPhone={officialContactPhone}
               />
             )}
 
@@ -311,6 +475,7 @@ export default function App() {
               <RegistrationForm 
                 activity={selectedActivity}
                 student={student}
+                registrations={registrations}
                 onBack={() => navigateTo('DETAILS', selectedActivity.id)}
                 onSubmit={handleFormSubmit}
               />
@@ -320,19 +485,33 @@ export default function App() {
               <ProfileSection 
                 student={student}
                 registrations={registrations}
-                activities={activities}
+                activities={activitiesWithUpdatedCounts}
                 onViewActivityDetails={(id) => navigateTo('DETAILS', id)}
+                plhRektorName={plhRektorName}
+                onLogout={handleLogout}
               />
             )}
 
             {activePage === 'ADMIN' && (
               <AdminPanel 
-                activities={activities}
+                activities={activitiesWithUpdatedCounts}
                 registrations={registrations}
                 onApproveRegistration={handleApproveRegistration}
                 onRejectRegistration={handleRejectRegistration}
+                onDeleteRegistration={handleDeleteRegistration}
                 onAddActivity={handleAddActivity}
+                onEditActivity={handleEditActivity}
                 onDeleteActivity={handleDeleteActivity}
+                plhRektorName={plhRektorName}
+                onUpdatePlhRektorName={setPlhRektorName}
+                officialContactName={officialContactName}
+                onUpdateOfficialContactName={setOfficialContactName}
+                officialContactPhone={officialContactPhone}
+                onUpdateOfficialContactPhone={setOfficialContactPhone}
+                officialContactEmail={officialContactEmail}
+                onUpdateOfficialContactEmail={setOfficialContactEmail}
+                officialSecretariatAddress={officialSecretariatAddress}
+                onUpdateOfficialSecretariatAddress={setOfficialSecretariatAddress}
               />
             )}
           </motion.div>
@@ -340,7 +519,12 @@ export default function App() {
       </main>
 
       {/* Global Academic Footer */}
-      <Footer onNavigate={(p) => navigateTo(p)} />
+      <Footer 
+        onNavigate={(p) => navigateTo(p)} 
+        contactPhone={officialContactPhone}
+        contactEmail={officialContactEmail}
+        secretariatAddress={officialSecretariatAddress}
+      />
     </div>
   );
 }

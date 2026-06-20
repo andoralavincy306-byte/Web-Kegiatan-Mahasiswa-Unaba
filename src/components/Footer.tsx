@@ -4,9 +4,17 @@ import { GraduationCap, MapPin, Phone, Mail, Clock, ExternalLink } from 'lucide-
 
 interface FooterProps {
   onNavigate: (page: PageType) => void;
+  contactPhone?: string;
+  contactEmail?: string;
+  secretariatAddress?: string;
 }
 
-export default function Footer({ onNavigate }: FooterProps) {
+export default function Footer({ 
+  onNavigate, 
+  contactPhone = '0812-3456-7890',
+  contactEmail = 'kemahasiswaan@unaba.ac.id',
+  secretariatAddress = 'Gedung Rektorat Lt. 2, Jalan Jenderal Sudirman Kav. 21, Karet Semanggi, Jakarta Selatan'
+}: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -87,18 +95,18 @@ export default function Footer({ onNavigate }: FooterProps) {
               <div className="flex items-start space-x-2.5">
                 <MapPin className="h-4 w-4 text-univ-orange-500 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Kampus Jakarta:</strong> Gedung Rektorat Lt. 2, Jalan Jenderal Sudirman Kav. 21, Karet Semanggi, Jakarta Selatan.
+                  <strong>Kampus BKA:</strong> {secretariatAddress}
                 </span>
               </div>
 
               <div className="flex items-start space-x-2.5">
                 <Phone className="h-4 w-4 text-univ-orange-500 shrink-0 mt-0.5" />
-                <span className="font-mono">Office: (021) 555-8902 / Fax: (021) 555-8903</span>
+                <span className="font-mono">WhatsApp: {contactPhone}</span>
               </div>
 
               <div className="flex items-start space-x-2.5">
                 <Mail className="h-4 w-4 text-univ-orange-500 shrink-0 mt-0.5" />
-                <span className="font-mono">bka@uab.ac.id / kemahasiswaan@uab.ac.id</span>
+                <span className="font-mono">{contactEmail}</span>
               </div>
             </div>
           </div>
@@ -108,13 +116,13 @@ export default function Footer({ onNavigate }: FooterProps) {
         {/* Footer legalities & credits signature */}
         <div className="mt-12 border-t border-slate-800 pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            <p>© {currentYear} Universitas Anak Bangsa (UAB). Hak Cipta Dilindungi Undang-Undang.</p>
+            <p>© {currentYear} Universitas Anak Bangsa (UNABA). Hak Cipta Dilindungi Undang-Undang.</p>
             <p className="text-[10px] text-slate-600 mt-1">Sistem Informasi Kredit Ekstrakurikuler Pendidikan Tinggi Indonesia Terakreditasi BAN-PT.</p>
           </div>
           
           <div className="flex items-center space-x-4">
             <span className="hover:text-slate-400 cursor-pointer flex items-center space-x-1">
-              <span>SIAKAD UAB</span>
+              <span>SIAKAD UNABA</span>
               <ExternalLink className="h-3 w-3" />
             </span>
             <span className="hover:text-slate-400 cursor-pointer flex items-center space-x-1">
