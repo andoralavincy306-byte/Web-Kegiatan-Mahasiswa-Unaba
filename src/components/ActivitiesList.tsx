@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, ActivityCategory, ActivityStatus } from '../types';
+import { Activity, ActivityCategory, ActivityStatus, isEventDatePassed, isActivityArchived } from '../types';
 import { Search, Calendar, MapPin, Award, Users, Filter, ArrowUpDown, Check } from 'lucide-react';
 
 interface ActivitiesListProps {
@@ -320,6 +320,13 @@ export default function ActivitiesList({
                         <Check className="h-3.5 w-3.5 text-green-600" />
                         <span>Anda Sudah Mendaftar</span>
                       </div>
+                    ) : isActivityArchived(act) ? (
+                      <button
+                        disabled
+                        className="rounded-xl bg-slate-100 py-2.5 text-center text-xs font-bold text-gray-400 cursor-not-allowed"
+                      >
+                        Pendaftaran Ditutup
+                      </button>
                     ) : act.status === ActivityStatus.OPEN && seatsLeft > 0 ? (
                       <button
                         onClick={() => onNavigateToRegistration(act.id)}

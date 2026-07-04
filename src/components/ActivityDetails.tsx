@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Activity, ActivityStatus } from '../types';
+import { Activity, ActivityStatus, isEventDatePassed, isActivityArchived } from '../types';
 import { ArrowLeft, Award, Calendar, MapPin, Users, Phone, ShieldCheck, CheckCircle2, UserCheck, HelpCircle, Check } from 'lucide-react';
 
 interface ActivityDetailsProps {
@@ -153,6 +153,10 @@ export default function ActivityDetails({
               <div className="w-full rounded-xl bg-green-50 border border-green-200 py-3.5 text-center text-sm font-extrabold text-green-700 flex items-center justify-center space-x-1.5 shadow-sm">
                 <Check className="h-4.5 w-4.5 text-green-600" />
                 <span>Anda Sudah Mendaftar</span>
+              </div>
+            ) : isActivityArchived(activity) ? (
+              <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3.5 text-center text-xs font-bold text-gray-400">
+                Maaf, Pendaftaran Ditutup (Kegiatan Masuk Arsip / Sudah Lewat)
               </div>
             ) : activity.status === 'Pendaftaran Buka' && seatsLeft > 0 ? (
               <button

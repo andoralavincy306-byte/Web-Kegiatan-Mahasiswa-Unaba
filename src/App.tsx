@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PageType, Activity, Registration, StudentProfile, ActivityCategory, ActivityStatus } from './types';
+import { PageType, Activity, Registration, StudentProfile, ActivityCategory, ActivityStatus, isEventDatePassed, isActivityArchived } from './types';
 import { INITIAL_ACTIVITIES, INITIAL_REGISTRATIONS, INITIAL_STUDENT } from './data';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -173,6 +173,14 @@ export default function App() {
 
   // --- Router Navigation Orchestrator with Top Scrolling ---
   const navigateTo = (page: PageType, activityId?: string) => {
+    if (page === 'REGISTRATION') {
+      const actId = activityId || selectedActivityId;
+      const act = activities.find(a => a.id === actId);
+      if (act && isActivityArchived(act)) {
+        alert("Maaf, pendaftaran ditutup karena kegiatan ini sudah masuk arsip atau sudah lewat.");
+        return;
+      }
+    }
     setActivePage(page);
     if (activityId) {
       setSelectedActivityId(activityId);

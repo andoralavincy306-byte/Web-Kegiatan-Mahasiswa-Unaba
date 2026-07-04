@@ -63,3 +63,31 @@ export interface StudentProfile {
 }
 
 export type PageType = 'HOME' | 'PROFILE' | 'ACTIVITIES' | 'DETAILS' | 'REGISTRATION' | 'ADMIN';
+
+export function isEventDatePassed(eventDateStr: string): boolean {
+  if (!eventDateStr) return false;
+  const dateRegex = /\d{4}-\d{2}-\d{2}/g;
+  const matches = eventDateStr.match(dateRegex);
+  if (!matches || matches.length === 0) {
+    return false;
+  }
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const dates = matches.map(d => new Date(d));
+  const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+  maxDate.setHours(23, 59, 59, 999);
+  
+  return today.getTime() > maxDate.getTime();
+}
+
+export function isActivityArchived(act: { registrationDeadline: string; eventDate: string }): boolean {
+  if (!act) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadlineDate = new Date(act.registrationDeadline);
+  const isPastDeadline = deadlineDate.getTime() < today.getTime();
+  return isPastDeadline || isEventDatePassed(act.eventDate);
+}
+

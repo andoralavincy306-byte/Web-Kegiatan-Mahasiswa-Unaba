@@ -78,12 +78,6 @@ export default function Hero({ onNavigate, title, subtitle }: HeroProps) {
           {/* Highlights / Micro-stats Banner */}
           <div className="lg:col-span-5 grid grid-cols-1 gap-4 lg:pl-6">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-all hover:bg-white/10">
-              <span className="text-3xl sm:text-4xl font-extrabold text-univ-orange-500 block font-mono">1.2K+</span>
-              <span className="text-sm font-bold text-white uppercase tracking-wider mt-1 block">Mahasiswa Aktif</span>
-              <p className="text-xs text-gray-400 mt-2">Berjejaring dan berkolaborasi dalam meningkatkan atmosfer akademik.</p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-all hover:bg-white/10">
               <span className="text-3xl sm:text-4xl font-extrabold text-univ-orange-500 block font-mono">100%</span>
               <span className="text-sm font-bold text-white uppercase tracking-wider mt-1 block">E-Sertifikat</span>
               <p className="text-xs text-gray-400 mt-2">Dapatkan sertifikat keikutsertaan elektronik resmi setelah merampungkan gelaran seminar.</p>
