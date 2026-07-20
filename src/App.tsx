@@ -30,6 +30,11 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_STUDENT;
   });
 
+  const [registeredStudents, setRegisteredStudents] = useState<StudentProfile[]>(() => {
+    const saved = localStorage.getItem('uab_all_registered_students_v5');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [isRegistered, setIsRegistered] = useState<boolean>(() => {
     return localStorage.getItem('uab_student_registered_v5') === 'true';
   });
@@ -81,25 +86,91 @@ export default function App() {
   }, [registrations]);
 
   useEffect(() => {
+    localStorage.setItem('uab_all_registered_students_v5', JSON.stringify(registeredStudents));
+  }, [registeredStudents]);
+
+  useEffect(() => {
     localStorage.setItem('uab_student_profile_v5', JSON.stringify(student));
     
     // Also update this student profile record inside the master registry list
     if (isRegistered && student && student.nim) {
-      const saved = localStorage.getItem('uab_all_registered_students_v5');
-      if (saved) {
-        try {
-          const list: StudentProfile[] = JSON.parse(saved);
-          const index = list.findIndex(s => s.nim.trim() === student.nim.trim());
-          if (index !== -1) {
-            list[index] = student;
-            localStorage.setItem('uab_all_registered_students_v5', JSON.stringify(list));
+      setRegisteredStudents(prev => {
+        const index = prev.findIndex(s => s.nim.trim() === student.nim.trim());
+        if (index !== -1) {
+          const currentItem = prev[index];
+          if (JSON.stringify(currentItem) !== JSON.stringify(student)) {
+            const updated = [...prev];
+            updated[index] = student;
+            return updated;
           }
-        } catch (e) {
-          console.error('Error saving updated student to master list:', e);
+        } else {
+          return [...prev, student];
         }
-      }
+        return prev;
+      });
     }
   }, [student, isRegistered]);
+
+  useEffect(() => {
+    // Synchronize all students' registeredActivityIds and skpiPointsAccumulated based on the latest registrations & activities
+    setRegisteredStudents(prev => {
+      let listChanged = false;
+      const updatedList = prev.map(stu => {
+        const stuRegs = registrations.filter(r => r.studentNim.trim() === stu.nim.trim());
+        const registeredIds = stuRegs.map(r => r.activityId);
+        
+        // Sum points for APPROVED registrations
+        const approvedRegs = stuRegs.filter(r => r.status === 'APPROVED');
+        let points = 0;
+        approvedRegs.forEach(r => {
+          const matchedAct = activities.find(a => a.id === r.activityId);
+          if (matchedAct) {
+            points += matchedAct.skpiPoints;
+          }
+        });
+        
+        const idsChanged = JSON.stringify(stu.registeredActivityIds.sort()) !== JSON.stringify(registeredIds.sort());
+        const pointsChanged = stu.skpiPointsAccumulated !== points;
+        
+        if (idsChanged || pointsChanged) {
+          listChanged = true;
+          return {
+            ...stu,
+            registeredActivityIds: registeredIds,
+            skpiPointsAccumulated: points
+          };
+        }
+        return stu;
+      });
+      return listChanged ? updatedList : prev;
+    });
+
+    // Also keep the currently logged-in student state in sync
+    if (isRegistered && student && student.nim) {
+      const stuRegs = registrations.filter(r => r.studentNim.trim() === student.nim.trim());
+      const registeredIds = stuRegs.map(r => r.activityId);
+      
+      const approvedRegs = stuRegs.filter(r => r.status === 'APPROVED');
+      let points = 0;
+      approvedRegs.forEach(r => {
+        const matchedAct = activities.find(a => a.id === r.activityId);
+        if (matchedAct) {
+          points += matchedAct.skpiPoints;
+        }
+      });
+
+      const idsChanged = JSON.stringify(student.registeredActivityIds.sort()) !== JSON.stringify(registeredIds.sort());
+      const pointsChanged = student.skpiPointsAccumulated !== points;
+
+      if (idsChanged || pointsChanged) {
+        setStudent(prev => ({
+          ...prev,
+          registeredActivityIds: registeredIds,
+          skpiPointsAccumulated: points
+        }));
+      }
+    }
+  }, [registrations, activities]);
 
   useEffect(() => {
     localStorage.setItem('uab_plh_rektor_name_v5', plhRektorName);
@@ -283,6 +354,24 @@ export default function App() {
         };
       });
     }
+
+    // Trigger explicit alert feedback so the admin is confident the registration is deleted
+    alert(`Berkas pendaftaran ${targetReg.studentName} (NIM: ${targetReg.studentNim}) pada kegiatan "${targetReg.activityTitle}" berhasil dihapus secara permanen.`);
+  };
+
+  const handleDeleteStudent = (nim: string, name: string) => {
+    // 1. Remove from registeredStudents list
+    setRegisteredStudents(prev => prev.filter(s => s.nim.trim() !== nim.trim()));
+    
+    // 2. Remove all registrations for this student
+    setRegistrations(prev => prev.filter(reg => reg.studentNim.trim() !== nim.trim()));
+
+    // 3. If currently logged-in student, log them out!
+    if (student && student.nim.trim() === nim.trim()) {
+      handleLogout();
+    }
+
+    alert(`Akun mahasiswa "${name}" (NIM: ${nim}) beserta semua riwayat pendaftarannya berhasil dihapus dari database.`);
   };
 
   const handleFormSubmit = (regData: Omit<Registration, 'id' | 'registrationDate' | 'status'>) => {
@@ -504,12 +593,14 @@ export default function App() {
               <AdminPanel 
                 activities={activitiesWithUpdatedCounts}
                 registrations={registrations}
+                studentsList={registeredStudents}
                 onApproveRegistration={handleApproveRegistration}
                 onRejectRegistration={handleRejectRegistration}
                 onDeleteRegistration={handleDeleteRegistration}
                 onAddActivity={handleAddActivity}
                 onEditActivity={handleEditActivity}
                 onDeleteActivity={handleDeleteActivity}
+                onDeleteStudent={handleDeleteStudent}
                 plhRektorName={plhRektorName}
                 onUpdatePlhRektorName={setPlhRektorName}
                 officialContactName={officialContactName}

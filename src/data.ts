@@ -31,7 +31,8 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     contactPerson: {
       name: 'Aditya Herlambang',
       phone: '0812-3456-7890'
-    }
+    },
+    certificateUploaded: true
   },
   {
     id: 'act-2',

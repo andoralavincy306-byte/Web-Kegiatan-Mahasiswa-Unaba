@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { Activity, Registration, ActivityCategory, ActivityStatus } from '../types';
+import { Activity, Registration, ActivityCategory, ActivityStatus, StudentProfile } from '../types';
 import { 
   Lock, LogIn, Users, Check, X, ShieldAlert, Award, Grid, 
   MapPin, Calendar, Clock, Plus, Trash2, Edit, Image as ImageIcon, 
-  Search, RefreshCw, Layers, CheckCircle, UploadCloud, Save
+  Search, RefreshCw, Layers, CheckCircle, UploadCloud, Save, FileUp
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface AdminPanelProps {
   activities: Activity[];
   registrations: Registration[];
+  studentsList: StudentProfile[];
   onApproveRegistration: (id: string) => void;
   onRejectRegistration: (id: string) => void;
   onDeleteRegistration: (id: string) => void;
   onAddActivity: (activity: Activity) => void;
   onEditActivity: (activity: Activity) => void;
   onDeleteActivity: (id: string) => void;
+  onDeleteStudent: (nim: string, name: string) => void;
   plhRektorName: string;
   onUpdatePlhRektorName: (name: string) => void;
   officialContactName: string;
@@ -38,12 +41,14 @@ const IMAGE_PRESETS = [
 export default function AdminPanel({
   activities,
   registrations,
+  studentsList,
   onApproveRegistration,
   onRejectRegistration,
   onDeleteRegistration,
   onAddActivity,
   onEditActivity,
   onDeleteActivity,
+  onDeleteStudent,
   plhRektorName,
   onUpdatePlhRektorName,
   officialContactName,
@@ -108,37 +113,14 @@ export default function AdminPanel({
   // Primary active view selection tab
   const [activeTab, setActiveTab] = useState<'VERIFICATION' | 'CATALOG' | 'STUDENTS'>('VERIFICATION');
 
-  const [studentsList, setStudentsList] = useState<any[]>(() => {
-    const saved = localStorage.getItem('uab_all_registered_students_v5');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // Refresh student registry from localStorage whenever this tab is active or loaded
+  // Database is automatically synchronized via React state props!
   const refreshStudentsList = () => {
-    const saved = localStorage.getItem('uab_all_registered_students_v5');
-    if (saved) {
-      setStudentsList(JSON.parse(saved));
-    }
+    alert("Database akun mahasiswa tersinkronisasi otomatis secara real-time!");
   };
 
   const handleDeleteStudent = (nim: string, name: string) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus akun mahasiswa "${name}" (NIM: ${nim}) dari portal? Semua data pendaftaran kegiatan mereka tidak akan dihapus dari histori pendaftaran, tetapi akun mahasiswa mereka akan dihapus dari database pendaftaran.`)) {
-      const saved = localStorage.getItem('uab_all_registered_students_v5');
-      if (saved) {
-        try {
-          const list = JSON.parse(saved);
-          const updatedList = list.filter((s: any) => s.nim.trim() !== nim.trim());
-          localStorage.setItem('uab_all_registered_students_v5', JSON.stringify(updatedList));
-          setStudentsList(updatedList);
-          
-          // Dispatch a custom event to notify App.tsx or other components if necessary 
-          window.dispatchEvent(new Event('storage'));
-          
-          alert(`Akun mahasiswa "${name}" berhasil dihapus dari sistem portal.`);
-        } catch (e) {
-          console.error(e);
-        }
-      }
+    if (window.confirm(`Apakah Anda yakin ingin menghapus akun mahasiswa "${name}" (NIM: ${nim}) dari portal? Semua data pendaftaran kegiatan mereka juga akan ikut terhapus.`)) {
+      onDeleteStudent(nim, name);
     }
   };
 
@@ -160,6 +142,8 @@ export default function AdminPanel({
   const [newRequirements, setNewRequirements] = useState('');
   const [newBenefits, setNewBenefits] = useState('');
   const [newImageUrl, setNewImageUrl] = useState(IMAGE_PRESETS[0].url);
+  const [newCertificateUploaded, setNewCertificateUploaded] = useState(false);
+  const [newCertificateTemplateUrl, setNewCertificateTemplateUrl] = useState('');
 
   // Edit Panel state
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
@@ -175,6 +159,32 @@ export default function AdminPanel({
   const [editRequirements, setEditRequirements] = useState('');
   const [editBenefits, setEditBenefits] = useState('');
   const [editImageUrl, setEditImageUrl] = useState('');
+  const [editCertificateUploaded, setEditCertificateUploaded] = useState(false);
+  const [editCertificateTemplateUrl, setEditCertificateTemplateUrl] = useState('');
+
+  const handleLocalCertificateUpload = (e: React.ChangeEvent<HTMLInputElement>, isEditMode: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      alert('Ukuran file template sertifikat terlalu besar. Silakan pilih file di bawah 8MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      if (isEditMode) {
+        setEditCertificateTemplateUrl(base64String);
+        setEditCertificateUploaded(true);
+      } else {
+        setNewCertificateTemplateUrl(base64String);
+        setNewCertificateUploaded(true);
+      }
+      alert('File sertifikat kegiatan berhasil di-upload!');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleLocalImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isEditMode: boolean) => {
     const file = e.target.files?.[0];
@@ -203,7 +213,7 @@ export default function AdminPanel({
       setIsAdminLoggedIn(true);
       setLoginError('');
     } else {
-      setLoginError('Kredensial salah. Petunjuk: gunakan user "admin" & sandi "admin123"');
+      setLoginError('Kredensial salah. Silakan periksa kembali username dan kata sandi Anda.');
     }
   };
 
@@ -233,7 +243,9 @@ export default function AdminPanel({
       contactPerson: {
         name: officialContactName,
         phone: officialContactPhone
-      }
+      },
+      certificateUploaded: newCertificateUploaded,
+      certificateTemplateUrl: newCertificateTemplateUrl
     };
 
     onAddActivity(createdActivity);
@@ -250,6 +262,8 @@ export default function AdminPanel({
     setNewRequirements('');
     setNewBenefits('');
     setNewImageUrl(IMAGE_PRESETS[0].url);
+    setNewCertificateUploaded(false);
+    setNewCertificateTemplateUrl('');
     
     setShowAddForm(false);
     alert('Aktivitas baru berhasil diluncurkan ke katalog!');
@@ -269,6 +283,8 @@ export default function AdminPanel({
     setEditImageUrl(act.imageUrl);
     setEditRequirements(act.requirements.join(', '));
     setEditBenefits(act.benefits.join(', '));
+    setEditCertificateUploaded(!!act.certificateUploaded);
+    setEditCertificateTemplateUrl(act.certificateTemplateUrl || '');
     
     // Scroll window smoothly to form panel
     window.scrollTo({ top: 320, behavior: 'smooth' });
@@ -297,6 +313,8 @@ export default function AdminPanel({
       location: editLocation,
       benefits: editBenefits ? editBenefits.split(',').map(b => b.trim()) : ['Sertifikat Resmi UNABA', 'Voucher Konsumsi'],
       requirements: editRequirements ? editRequirements.split(',').map(r => r.trim()) : ['Mahasiswa Aktif UNABA'],
+      certificateUploaded: editCertificateUploaded,
+      certificateTemplateUrl: editCertificateTemplateUrl,
     };
 
     onEditActivity(updatedActivity);
@@ -361,7 +379,7 @@ export default function AdminPanel({
                 id="admin-username"
                 type="text"
                 required
-                placeholder="Contoh: admin"
+                placeholder="Masukkan Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
@@ -375,20 +393,11 @@ export default function AdminPanel({
                 id="admin-password"
                 type="password"
                 required
-                placeholder="Contoh: admin123"
+                placeholder="Masukkan Kata Sandi"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
               />
-            </div>
-
-            {/* Hint Notice */}
-            <div className="rounded-xl bg-amber-50 border border-amber-200/50 p-3 text-xs text-amber-800 flex items-start space-x-2">
-              <ShieldAlert className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-              <div>
-                <span className="font-bold">Tips Reviewer:</span><br />
-                User: <code className="font-mono bg-amber-100/80 px-1 rounded font-bold text-slate-800">admin</code> & Sandi: <code className="font-mono bg-amber-100/80 px-1 rounded font-bold text-slate-800">admin123</code>
-              </div>
             </div>
 
             {loginError && (
@@ -630,112 +639,140 @@ export default function AdminPanel({
                     <th className="p-3 text-right">Opsi</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {registrations.map(reg => {
-                    const isDuplicateApproved = registrations.some(
-                      r => r.id !== reg.id && 
-                           r.activityId === reg.activityId && 
-                           r.studentNim.trim() === reg.studentNim.trim() && 
-                           r.status === 'APPROVED'
-                    );
+                <tbody className="divide-y divide-slate-100">
+                  <AnimatePresence initial={false}>
+                    {registrations.map(reg => {
+                      const isDuplicateApproved = registrations.some(
+                        r => r.id !== reg.id && 
+                             r.activityId === reg.activityId && 
+                             r.studentNim.trim() === reg.studentNim.trim() && 
+                             r.status === 'APPROVED'
+                      );
 
-                    const hasPendingDuplication = reg.status === 'PENDING' && registrations.some(
-                      r => r.id !== reg.id && 
-                           r.activityId === reg.activityId && 
-                           r.studentNim.trim() === reg.studentNim.trim() && 
-                           r.status === 'PENDING'
-                    );
+                      const hasPendingDuplication = reg.status === 'PENDING' && registrations.some(
+                        r => r.id !== reg.id && 
+                             r.activityId === reg.activityId && 
+                             r.studentNim.trim() === reg.studentNim.trim() && 
+                             r.status === 'PENDING'
+                      );
 
-                    return (
-                      <tr key={reg.id} className={`border-b border-slate-50 text-xs hover:bg-slate-50/50 ${isDuplicateApproved ? 'bg-rose-50/30' : ''}`}>
-                        {/* Student Details */}
-                        <td className="p-3">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-extrabold text-gray-900">{reg.studentName}</span>
-                            {isDuplicateApproved && (
-                              <span className="inline-block bg-rose-150 text-rose-800 font-extrabold text-[9px] rounded px-1.5 py-0.5 select-none animate-pulse">
-                                ⚠️ Duplikat Disetujui
-                              </span>
-                            )}
-                            {hasPendingDuplication && (
-                              <span className="inline-block bg-amber-150 text-amber-800 font-extrabold text-[9px] rounded px-1.5 py-0.5 select-none">
-                                ⚠️ Ganda Antrean
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] font-mono text-gray-550">NIM: {reg.studentNim} • Smt {reg.studentSemester}</p>
-                          <p className="text-[10px] text-zinc-400">{reg.studentDepartment}</p>
-                        </td>
+                      return (
+                        <motion.tr 
+                          key={reg.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, x: -30, backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+                          transition={{ duration: 0.2 }}
+                          className={`border-b border-slate-50 text-xs hover:bg-slate-50/50 ${isDuplicateApproved ? 'bg-rose-50/30' : ''}`}
+                        >
+                          {/* Student Details */}
+                          <td className="p-3">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="font-extrabold text-gray-900">{reg.studentName}</span>
+                              {isDuplicateApproved && (
+                                <span className="inline-block bg-rose-150 text-rose-800 font-extrabold text-[9px] rounded px-1.5 py-0.5 select-none animate-pulse">
+                                  ⚠️ Duplikat Disetujui
+                                </span>
+                              )}
+                              {hasPendingDuplication && (
+                                <span className="inline-block bg-amber-150 text-amber-800 font-extrabold text-[9px] rounded px-1.5 py-0.5 select-none">
+                                  ⚠️ Ganda Antrean
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] font-mono text-gray-550">NIM: {reg.studentNim} • Smt {reg.studentSemester}</p>
+                            <p className="text-[10px] text-zinc-400">{reg.studentDepartment}</p>
+                          </td>
 
-                        {/* Activity Title */}
-                        <td className="p-3 font-semibold text-gray-700 max-w-[200px] truncate">
-                          {reg.activityTitle}
-                        </td>
+                          {/* Activity Title */}
+                          <td className="p-3 font-semibold text-gray-700 max-w-[200px] truncate">
+                            {reg.activityTitle}
+                          </td>
 
-                        {/* Upload KTM */}
-                        <td className="p-3 font-mono text-[11px] text-univ-blue-700">
-                          <span className="hover:underline cursor-pointer block truncate max-w-[150px]" title={reg.uploadedKtmUrl}>
-                            📄 {reg.uploadedKtmUrl}
-                          </span>
-                        </td>
+                          {/* Upload KTM */}
+                          <td className="p-3 font-mono text-[11px] text-univ-blue-700">
+                            <span className="hover:underline cursor-pointer block truncate max-w-[150px]" title={reg.uploadedKtmUrl}>
+                              📄 {reg.uploadedKtmUrl}
+                            </span>
+                          </td>
 
-                        {/* Status Badge */}
-                        <td className="p-3">
-                          <span className={`inline-block font-bold rounded-full px-2 py-0.5 text-[9px] ${
-                            reg.status === 'APPROVED' 
-                              ? 'bg-green-100 text-green-800' 
-                              : reg.status === 'PENDING' 
-                              ? 'bg-amber-100 text-amber-800' 
-                              : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {reg.status}
-                          </span>
-                        </td>
+                          {/* Status Badge */}
+                          <td className="p-3">
+                            <span className={`inline-block font-bold rounded-full px-2 py-0.5 text-[9px] ${
+                              reg.status === 'APPROVED' 
+                                ? 'bg-green-100 text-green-800' 
+                                : reg.status === 'PENDING' 
+                                ? 'bg-amber-100 text-amber-800' 
+                                : 'bg-rose-100 text-rose-800'
+                            }`}>
+                              {reg.status}
+                            </span>
+                          </td>
 
-                        {/* Action triggers */}
-                        <td className="p-3 text-right h-full">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {reg.status === 'PENDING' && (
-                              <>
-                                <button
-                                  onClick={() => onApproveRegistration(reg.id)}
-                                  className="rounded bg-green-505 bg-green-500 hover:bg-green-600 p-1.5 text-white transition-all cursor-pointer shadow-sm"
-                                  title="Setujui Pendaftaran"
-                                >
-                                  <Check className="h-3.5 w-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => onRejectRegistration(reg.id)}
-                                  className="rounded bg-rose-505 bg-rose-500 hover:bg-rose-600 p-1.5 text-white transition-all cursor-pointer shadow-sm"
-                                  title="Tolak Pendaftaran"
-                                >
-                                  <X className="h-3.5 w-3.5" />
-                                </button>
-                              </>
-                            )}
-                            {reg.status !== 'PENDING' && (
-                              <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold mr-1 ${
-                                reg.status === 'APPROVED' ? 'bg-green-50 text-green-700' : 'bg-rose-50 text-rose-700'
-                              }`}>
-                                {reg.status === 'APPROVED' ? 'Disetujui' : 'Ditolak'}
-                              </span>
-                            )}
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`Yakin ingin menghapus berkas pendaftaran ${reg.studentName} (${reg.studentNim}) pada kegiatan "${reg.activityTitle}"?`)) {
-                                  onDeleteRegistration(reg.id);
-                                }
-                              }}
-                              className="rounded bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 p-1.5 transition-all cursor-pointer border border-slate-200"
-                              title="Hapus Registrasi"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          {/* Action triggers */}
+                          <td className="p-3 text-right h-full">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {reg.status === 'APPROVED' ? (
+                                <>
+                                  <span className="text-[10px] px-2 py-1 rounded font-extrabold mr-1 bg-green-50 text-green-700 border border-green-200">
+                                    Disetujui
+                                  </span>
+                                  <button
+                                    onClick={() => onRejectRegistration(reg.id)}
+                                    className="rounded bg-rose-500 hover:bg-rose-600 p-1.5 text-white transition-all cursor-pointer shadow-sm"
+                                    title="Batalkan & Tolak Pendaftaran"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                </>
+                              ) : reg.status === 'REJECTED' ? (
+                                <>
+                                  <span className="text-[10px] px-2 py-1 rounded font-extrabold mr-1 bg-rose-50 text-rose-700 border border-rose-200">
+                                    Ditolak
+                                  </span>
+                                  <button
+                                    onClick={() => onApproveRegistration(reg.id)}
+                                    className="rounded bg-green-500 hover:bg-green-600 p-1.5 text-white transition-all cursor-pointer shadow-sm"
+                                    title="Ubah & Setujui Pendaftaran"
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => onApproveRegistration(reg.id)}
+                                    className="rounded bg-green-500 hover:bg-green-600 p-1.5 text-white transition-all cursor-pointer shadow-sm"
+                                    title="Setujui Pendaftaran"
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => onRejectRegistration(reg.id)}
+                                    className="rounded bg-rose-500 hover:bg-rose-600 p-1.5 text-white transition-all cursor-pointer shadow-sm"
+                                    title="Tolak Pendaftaran"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                </>
+                              )}
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`Yakin ingin menghapus berkas pendaftaran ${reg.studentName} (${reg.studentNim}) pada kegiatan "${reg.activityTitle}"?`)) {
+                                    onDeleteRegistration(reg.id);
+                                  }
+                                }}
+                                className="rounded bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 p-1.5 transition-all cursor-pointer border border-slate-200"
+                                title="Hapus Registrasi"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </AnimatePresence>
                 </tbody>
               </table>
             </div>
@@ -958,6 +995,41 @@ export default function AdminPanel({
                       onChange={(e) => setEditBenefits(e.target.value)}
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-850"
                     />
+                  </div>
+
+                  <div className="flex items-center space-x-2 pt-2 pb-1">
+                    <input
+                      type="checkbox"
+                      id="editCertificateUploaded"
+                      checked={editCertificateUploaded}
+                      onChange={(e) => setEditCertificateUploaded(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-univ-orange-600 focus:ring-univ-orange-500 cursor-pointer"
+                    />
+                    <label htmlFor="editCertificateUploaded" className="text-xs font-bold text-gray-700 cursor-pointer select-none">
+                      Sertifikat Sudah Di-upload (Aktifkan Cetak Sertifikat Mahasiswa)
+                    </label>
+                  </div>
+
+                  {/* CUSTOM CERTIFICATE FILE UPLOAD */}
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-3 space-y-1.5 text-left">
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500 flex items-center space-x-1">
+                      <FileUp className="h-3.5 w-3.5 text-slate-400" />
+                      <span>Upload File Sertifikat Kegiatan (Opsional)</span>
+                    </label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={(e) => handleLocalCertificateUpload(e, true)}
+                      className="w-full text-xs font-semibold text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-univ-blue-50 file:text-univ-blue-700 hover:file:bg-univ-blue-100 cursor-pointer"
+                    />
+                    {editCertificateTemplateUrl ? (
+                      <div className="text-[10px] text-green-700 font-bold flex items-center space-x-1">
+                        <Check className="h-3 w-3" />
+                        <span>File Sertifikat berhasil terunggah (Dapat dicetak)</span>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 italic block">Pilih file gambar template sertifikat jika ada.</span>
+                    )}
                   </div>
 
                   <div className="pt-2 flex gap-2">
@@ -1188,6 +1260,41 @@ export default function AdminPanel({
                       />
                     </div>
 
+                    <div className="flex items-center space-x-2 pt-1 pb-1">
+                      <input
+                        type="checkbox"
+                        id="newCertificateUploaded"
+                        checked={newCertificateUploaded}
+                        onChange={(e) => setNewCertificateUploaded(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 text-univ-orange-600 focus:ring-univ-orange-500 cursor-pointer"
+                      />
+                      <label htmlFor="newCertificateUploaded" className="text-xs font-bold text-gray-700 cursor-pointer select-none">
+                        Sertifikat Sudah Di-upload (Aktifkan Cetak Sertifikat Mahasiswa)
+                      </label>
+                    </div>
+
+                    {/* CUSTOM CERTIFICATE FILE UPLOAD FOR CREATE */}
+                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-3 space-y-1.5 text-left">
+                      <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500 flex items-center space-x-1">
+                        <FileUp className="h-3.5 w-3.5 text-slate-400" />
+                        <span>Upload File Sertifikat Kegiatan (Opsional)</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleLocalCertificateUpload(e, false)}
+                        className="w-full text-xs font-semibold text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-univ-blue-50 file:text-univ-blue-700 hover:file:bg-univ-blue-100 cursor-pointer"
+                      />
+                      {newCertificateTemplateUrl ? (
+                        <div className="text-[10px] text-green-700 font-bold flex items-center space-x-1">
+                          <Check className="h-3 w-3" />
+                          <span>File Sertifikat berhasil terunggah (Dapat dicetak)</span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 italic block">Pilih file gambar template sertifikat jika ada.</span>
+                      )}
+                    </div>
+
                     <button
                       type="submit"
                       className="w-full rounded-xl bg-univ-orange-500 py-2.5 text-xs font-extrabold text-white hover:bg-univ-orange-600 transition-all cursor-pointer shadow-sm text-center"
@@ -1292,86 +1399,101 @@ export default function AdminPanel({
                 </div>
               ) : (
                 <div className="space-y-3.5 max-h-[640px] overflow-y-auto pr-1">
-                  {filteredActivities.map(act => {
-                    const isPast = new Date(act.registrationDeadline).getTime() < new Date().setHours(0,0,0,0);
-                    return (
-                      <div 
-                        key={act.id} 
-                        className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl border transition-all ${
-                          editingActivity?.id === act.id 
-                            ? 'border-univ-orange-500 bg-univ-orange-50/10'
-                            : 'border-slate-150 bg-white hover:border-univ-blue-300'
-                        }`}
-                      >
-                        {/* Left: Thumbnail & text details */}
-                        <div className="flex items-start space-x-3">
-                          <img 
-                            src={act.imageUrl} 
-                            alt={act.title} 
-                            className="h-14 w-14 rounded-lg object-cover shrink-0 bg-slate-100 border border-slate-100" 
-                            referrerPolicy="no-referrer"
-                          />
-                          <div className="space-y-1">
-                            <div className="flex flex-wrap gap-1 items-center">
-                              <span className="inline-block px-2 py-0.5 rounded text-[8px] font-bold bg-univ-blue-50 text-univ-blue-800 uppercase">
-                                {act.category}
-                              </span>
-                              {isPast && (
-                                <span className="inline-block px-2 py-0.5 rounded text-[8px] font-extrabold bg-amber-50 border border-amber-200 text-amber-700 uppercase">
-                                  Arsip (Tanggal Lewat)
+                  <AnimatePresence initial={false}>
+                    {filteredActivities.map(act => {
+                      const isPast = new Date(act.registrationDeadline).getTime() < new Date().setHours(0,0,0,0);
+                      return (
+                        <motion.div 
+                          key={act.id} 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, x: -20 }}
+                          transition={{ duration: 0.2 }}
+                          className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl border transition-all ${
+                            editingActivity?.id === act.id 
+                              ? 'border-univ-orange-500 bg-univ-orange-50/10'
+                              : 'border-slate-150 bg-white hover:border-univ-blue-300'
+                          }`}
+                        >
+                          {/* Left: Thumbnail & text details */}
+                          <div className="flex items-start space-x-3">
+                            <img 
+                              src={act.imageUrl} 
+                              alt={act.title} 
+                              className="h-14 w-14 rounded-lg object-cover shrink-0 bg-slate-100 border border-slate-100" 
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap gap-1 items-center">
+                                <span className="inline-block px-2 py-0.5 rounded text-[8px] font-bold bg-univ-blue-50 text-univ-blue-800 uppercase">
+                                  {act.category}
                                 </span>
-                              )}
-                            </div>
-                            <h4 className="text-xs font-extrabold text-slate-900 leading-snug line-clamp-1">{act.title}</h4>
-                            
-                            <div className="flex items-center space-x-3 text-[10px] text-gray-500 font-medium">
-                              <span className="flex items-center space-x-1">
-                                <Calendar className="h-3 w-3 text-univ-orange-500" />
-                                <span className="text-gray-700">{act.eventDate}</span>
-                              </span>
-                              <span className="flex items-center space-x-1">
-                                <MapPin className="h-3 w-3 text-teal-600" />
-                                <span className="truncate max-w-[120px]" title={act.location}>{act.location}</span>
-                              </span>
+                                {isPast && (
+                                  <span className="inline-block px-2 py-0.5 rounded text-[8px] font-extrabold bg-amber-50 border border-amber-200 text-amber-700 uppercase">
+                                    Arsip (Tanggal Lewat)
+                                  </span>
+                                )}
+                                {act.certificateUploaded ? (
+                                  <span className="inline-block px-2 py-0.5 rounded text-[8px] font-bold bg-green-100 border border-green-200 text-green-800 uppercase">
+                                    📜 Sertifikat Dirilis
+                                  </span>
+                                ) : (
+                                  <span className="inline-block px-2 py-0.5 rounded text-[8px] font-bold bg-rose-50 border border-rose-100 text-rose-700 uppercase">
+                                    ⚠️ Sertifikat Belum Di-upload
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="text-xs font-extrabold text-slate-900 leading-snug line-clamp-1">{act.title}</h4>
+                              
+                              <div className="flex items-center space-x-3 text-[10px] text-gray-500 font-medium">
+                                <span className="flex items-center space-x-1">
+                                  <Calendar className="h-3 w-3 text-univ-orange-500" />
+                                  <span className="text-gray-700">{act.eventDate}</span>
+                                </span>
+                                <span className="flex items-center space-x-1">
+                                  <MapPin className="h-3 w-3 text-teal-600" />
+                                  <span className="truncate max-w-[120px]" title={act.location}>{act.location}</span>
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Right: triggers for layout editing / delete */}
-                      <div className="flex items-center justify-end space-x-2 mt-3 md:mt-0 md:ml-4 border-t pt-3.5 md:pt-0 md:border-0 border-dashed border-gray-100">
-                        
-                        {/* EDIT BUTTON TRIGGER */}
-                        <button
-                          onClick={() => handleBeginEdit(act)}
-                          className="rounded-lg bg-univ-blue-50 font-bold text-univ-blue-800 border border-univ-blue-100 px-3 py-1.5 text-xs transition-all flex items-center space-x-1 cursor-pointer hover:bg-univ-blue-800 hover:text-white"
-                          title="Sunting / Edit"
-                        >
-                          <Edit className="h-3 w-3" />
-                          <span>Ubah</span>
-                        </button>
+                          {/* Right: triggers for layout editing / delete */}
+                          <div className="flex items-center justify-end space-x-2 mt-3 md:mt-0 md:ml-4 border-t pt-3.5 md:pt-0 md:border-0 border-dashed border-gray-100">
+                            
+                            {/* EDIT BUTTON TRIGGER */}
+                            <button
+                              onClick={() => handleBeginEdit(act)}
+                              className="rounded-lg bg-univ-blue-50 font-bold text-univ-blue-800 border border-univ-blue-100 px-3 py-1.5 text-xs transition-all flex items-center space-x-1 cursor-pointer hover:bg-univ-blue-800 hover:text-white"
+                              title="Sunting / Edit"
+                            >
+                              <Edit className="h-3 w-3" />
+                              <span>Ubah</span>
+                            </button>
 
-                        {/* DELETE BUTTON */}
-                        <button
-                          onClick={() => {
-                            if (confirm(`Apakah Anda yakin ingin menghapus "${act.title}"?\nSeluruh data pendaftaran terkait juga akan otomatis dihapus!`)) {
-                              onDeleteActivity(act.id);
-                              if (editingActivity?.id === act.id) {
-                                handleCancelEdit();
-                              }
-                            }
-                          }}
-                          className="rounded-lg bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 text-xs transition-all flex items-center space-x-1 cursor-pointer hover:bg-rose-600 hover:text-white"
-                          title="Hapus"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          <span>Hapus</span>
-                        </button>
-                        
-                      </div>
+                            {/* DELETE BUTTON */}
+                            <button
+                              onClick={() => {
+                                if (confirm(`Apakah Anda yakin ingin menghapus "${act.title}"?\nSeluruh data pendaftaran terkait juga akan otomatis dihapus!`)) {
+                                  onDeleteActivity(act.id);
+                                  if (editingActivity?.id === act.id) {
+                                    handleCancelEdit();
+                                  }
+                                }
+                              }}
+                              className="rounded-lg bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 text-xs transition-all flex items-center space-x-1 cursor-pointer hover:bg-rose-600 hover:text-white"
+                              title="Hapus"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              <span>Hapus</span>
+                            </button>
+                            
+                          </div>
 
-                    </div>
-                    );
-                  })}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
                 </div>
               )}
 
@@ -1422,35 +1544,44 @@ export default function AdminPanel({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-150 text-xs text-slate-700">
-                  {studentsList.map((stu, idx) => (
-                    <tr key={stu.nim} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-3 font-semibold text-slate-500">{idx + 1}</td>
-                      <td className="p-3">
-                        <div className="font-extrabold text-slate-900">{stu.name}</div>
-                      </td>
-                      <td className="p-3 font-mono font-bold text-slate-600">{stu.nim}</td>
-                      <td className="p-3 font-medium text-slate-600">{stu.email}</td>
-                      <td className="p-3">
-                        <div className="font-semibold text-slate-800">{stu.department || 'Umum'}</div>
-                        <div className="text-[10px] text-slate-400 font-bold uppercase">{stu.faculty || 'Fakultas Psikologi dan Sains'}</div>
-                      </td>
-                      <td className="p-3 text-center font-bold text-slate-600">{stu.semester}</td>
-                      <td className="p-3 text-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-150">
-                          {stu.skpiPointsAccumulated || 0} Pkt
-                        </span>
-                      </td>
-                      <td className="p-3 text-right">
-                        <button
-                          onClick={() => handleDeleteStudent(stu.nim, stu.name)}
-                          className="inline-flex rounded-lg bg-rose-50 text-rose-600 border border-rose-100 p-2 transition-all hover:bg-rose-600 hover:text-white cursor-pointer shadow-sm"
-                          title="Hapus Akun Mahasiswa"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  <AnimatePresence initial={false}>
+                    {studentsList.map((stu, idx) => (
+                      <motion.tr 
+                        key={stu.nim}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -30, backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+                        transition={{ duration: 0.2 }}
+                        className="hover:bg-slate-50/50 transition-colors"
+                      >
+                        <td className="p-3 font-semibold text-slate-500">{idx + 1}</td>
+                        <td className="p-3">
+                          <div className="font-extrabold text-slate-900">{stu.name}</div>
+                        </td>
+                        <td className="p-3 font-mono font-bold text-slate-600">{stu.nim}</td>
+                        <td className="p-3 font-medium text-slate-600">{stu.email}</td>
+                        <td className="p-3">
+                          <div className="font-semibold text-slate-800">{stu.department || 'Umum'}</div>
+                          <div className="text-[10px] text-slate-400 font-bold uppercase">{stu.faculty || 'Fakultas Psikologi dan Sains'}</div>
+                        </td>
+                        <td className="p-3 text-center font-bold text-slate-600">{stu.semester}</td>
+                        <td className="p-3 text-center">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-150">
+                            {stu.skpiPointsAccumulated || 0} Pkt
+                          </span>
+                        </td>
+                        <td className="p-3 text-right">
+                          <button
+                            onClick={() => handleDeleteStudent(stu.nim, stu.name)}
+                            className="inline-flex rounded-lg bg-rose-50 text-rose-600 border border-rose-100 p-2 transition-all hover:bg-rose-600 hover:text-white cursor-pointer shadow-sm"
+                            title="Hapus Akun Mahasiswa"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
                 </tbody>
               </table>
             </div>

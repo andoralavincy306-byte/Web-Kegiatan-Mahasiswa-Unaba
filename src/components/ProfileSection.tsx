@@ -186,9 +186,16 @@ export default function ProfileSection({ student, registrations, activities, onV
               box-sizing: border-box;
               border: 18px double #d4af37; 
               background: #ffffff;
-              background-image: radial-gradient(#fcfbf7 1.5px, transparent 1.5px), radial-gradient(#fcfbf7 1.5px, #ffffff 1.5px);
-              background-size: 60px 60px;
-              background-position: 0 0, 30px 30px;
+              ${activity?.certificateTemplateUrl ? `
+                background-image: url('${activity.certificateTemplateUrl}');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+              ` : `
+                background-image: radial-gradient(#fcfbf7 1.5px, transparent 1.5px), radial-gradient(#fcfbf7 1.5px, #ffffff 1.5px);
+                background-size: 60px 60px;
+                background-position: 0 0, 30px 30px;
+              `}
               position: relative;
               box-shadow: 0 10px 30px rgba(0,0,0,0.08);
               display: flex;
@@ -520,9 +527,15 @@ export default function ProfileSection({ student, registrations, activities, onV
                                 {activity.category}
                               </span>
                             )}
-                            <span className="rounded bg-univ-orange-50 px-2 py-0.5 text-[11px] font-bold text-univ-orange-700">
-                              E-Sertifikat Tersedia
-                            </span>
+                            {activity && activity.certificateUploaded ? (
+                              <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+                                ✓ E-Sertifikat Tersedia
+                              </span>
+                            ) : (
+                              <span className="rounded bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
+                                ⏳ Sertifikat Belum Di-upload oleh Admin
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -531,13 +544,19 @@ export default function ProfileSection({ student, registrations, activities, onV
                           {getStatusBadge(reg.status)}
                           
                           {reg.status === 'APPROVED' ? (
-                            <button
-                              onClick={() => handlePrintIndividualCertificate(reg)}
-                              className="text-xs font-bold text-univ-orange-700 hover:text-univ-orange-900 inline-flex items-center space-x-1 border border-univ-orange-100 rounded-lg px-2.5 py-1.5 bg-white shadow-sm hover:shadow hover:bg-univ-orange-50/10 cursor-pointer transition-all"
-                            >
-                              <Printer className="h-3.5 w-3.5" />
-                              <span>Cetak Sertifikat</span>
-                            </button>
+                            activity && activity.certificateUploaded ? (
+                              <button
+                                onClick={() => handlePrintIndividualCertificate(reg)}
+                                className="text-xs font-bold text-univ-orange-700 hover:text-univ-orange-900 inline-flex items-center space-x-1 border border-univ-orange-100 rounded-lg px-2.5 py-1.5 bg-white shadow-sm hover:shadow hover:bg-univ-orange-50/10 cursor-pointer transition-all"
+                              >
+                                <Printer className="h-3.5 w-3.5" />
+                                <span>Cetak Sertifikat</span>
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-gray-500 font-medium italic">
+                                Belum dapat dicetak (Sertifikat belum di-upload)
+                              </span>
+                            )
                           ) : reg.status === 'PENDING' ? (
                             <p className="text-[11px] text-gray-500 italic">Berkas KTM di-upload: {reg.uploadedKtmUrl}</p>
                           ) : (
