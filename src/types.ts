@@ -34,6 +34,12 @@ export interface Activity {
     name: string;
     phone: string;
   };
+  certificateUploaded?: boolean;
+  certificateTemplateUrl?: string;
+  hasCertificate?: boolean; // Option whether certificate is provided for this activity
+  certificateSignerName?: string;
+  certificateSignerRole?: string;
+  allowCertificateDownload?: boolean; // Option whether students are allowed to download the certificate
 }
 
 export interface Registration {
@@ -46,6 +52,7 @@ export interface Registration {
   studentPhone: string;
   studentDepartment: string;
   studentSemester: number;
+  studentFaculty?: string;
   uploadedKtmUrl: string; // Mock URL or filename
   registrationDate: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';

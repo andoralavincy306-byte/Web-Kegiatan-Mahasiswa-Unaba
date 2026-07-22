@@ -22,12 +22,43 @@ export default function App() {
 
   const [registrations, setRegistrations] = useState<Registration[]>(() => {
     const saved = localStorage.getItem('uab_registrations_v5') || localStorage.getItem('ubn_registrations_v5');
-    return saved ? JSON.parse(saved) : INITIAL_REGISTRATIONS;
+    if (saved) {
+      try {
+        const parsed: Registration[] = JSON.parse(saved);
+        if (parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return INITIAL_REGISTRATIONS;
   });
 
   const [student, setStudent] = useState<StudentProfile>(() => {
     const saved = localStorage.getItem('uab_student_profile_v5') || localStorage.getItem('ubn_student_profile_v5');
-    return saved ? JSON.parse(saved) : INITIAL_STUDENT;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.name) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return INITIAL_STUDENT;
+  });
+
+  const [registeredStudents, setRegisteredStudents] = useState<StudentProfile[]>(() => {
+    const saved = localStorage.getItem('uab_all_registered_students_v5');
+    if (saved) {
+      try {
+        const parsed: StudentProfile[] = JSON.parse(saved);
+        if (parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [INITIAL_STUDENT];
   });
 
   const [isRegistered, setIsRegistered] = useState<boolean>(() => {
@@ -81,25 +112,68 @@ export default function App() {
   }, [registrations]);
 
   useEffect(() => {
+    localStorage.setItem('uab_all_registered_students_v5', JSON.stringify(registeredStudents));
+  }, [registeredStudents]);
+
+  useEffect(() => {
     localStorage.setItem('uab_student_profile_v5', JSON.stringify(student));
     
     // Also update this student profile record inside the master registry list
     if (isRegistered && student && student.nim) {
-      const saved = localStorage.getItem('uab_all_registered_students_v5');
-      if (saved) {
-        try {
-          const list: StudentProfile[] = JSON.parse(saved);
-          const index = list.findIndex(s => s.nim.trim() === student.nim.trim());
-          if (index !== -1) {
-            list[index] = student;
-            localStorage.setItem('uab_all_registered_students_v5', JSON.stringify(list));
+      setRegisteredStudents(prev => {
+        const index = prev.findIndex(s => s.nim.trim() === student.nim.trim());
+        if (index !== -1) {
+          const currentItem = prev[index];
+          if (JSON.stringify(currentItem) !== JSON.stringify(student)) {
+            const updated = [...prev];
+            updated[index] = student;
+            return updated;
           }
-        } catch (e) {
-          console.error('Error saving updated student to master list:', e);
+        } else {
+          return [...prev, student];
         }
-      }
+        return prev;
+      });
     }
   }, [student, isRegistered]);
+
+  useEffect(() => {
+    // Synchronize all students' registeredActivityIds based on the latest registrations
+    setRegisteredStudents(prev => {
+      let listChanged = false;
+      const updatedList = prev.map(stu => {
+        const stuRegs = registrations.filter(r => r.studentNim.trim() === stu.nim.trim());
+        const registeredIds = stuRegs.map(r => r.activityId);
+        
+        const idsChanged = JSON.stringify(stu.registeredActivityIds.sort()) !== JSON.stringify(registeredIds.sort());
+        
+        if (idsChanged) {
+          listChanged = true;
+          return {
+            ...stu,
+            registeredActivityIds: registeredIds
+          };
+        }
+        return stu;
+      });
+      return listChanged ? updatedList : prev;
+    });
+
+    // Also keep the currently logged-in student state in sync
+    if (isRegistered && student && student.nim) {
+      const stuRegs = registrations.filter(r => r.studentNim.trim() === student.nim.trim());
+      const registeredIds = stuRegs.map(r => r.activityId);
+
+      const idsChanged = JSON.stringify(student.registeredActivityIds.sort()) !== JSON.stringify(registeredIds.sort());
+
+      if (idsChanged) {
+        setStudent(prev => ({
+          ...prev,
+          registeredActivityIds: registeredIds
+        }));
+      }
+    }
+  }, [registrations]);
 
   useEffect(() => {
     localStorage.setItem('uab_plh_rektor_name_v5', plhRektorName);
@@ -125,36 +199,22 @@ export default function App() {
     localStorage.setItem('uab_active_page_v5', activePage);
   }, [activePage]);
 
-  // Synchronize active student profile's registeredActivityIds and skpiPointsAccumulated with the registrations database!
+  // Synchronize active student profile's registeredActivityIds with the registrations database
   useEffect(() => {
     if (!isRegistered || !student || !student.nim) return;
 
-    // Find all registrations for this current student NIM
     const studentRegs = registrations.filter(r => r.studentNim.trim() === student.nim.trim());
     const registeredIds = studentRegs.map(r => r.activityId);
 
-    // Calculate verified SKPI points only from APPROVED registrations
-    const approvedRegs = studentRegs.filter(r => r.status === 'APPROVED');
-    let points = 0;
-    approvedRegs.forEach(reg => {
-      const act = activities.find(a => a.id === reg.activityId);
-      if (act) {
-        points += act.skpiPoints;
-      }
-    });
-
-    // To prevent infinite rerendering state loops, check changes first
     const isIdsSame = JSON.stringify(student.registeredActivityIds) === JSON.stringify(registeredIds);
-    const isPointsSame = student.skpiPointsAccumulated === points;
 
-    if (!isIdsSame || !isPointsSame) {
+    if (!isIdsSame) {
       setStudent(prev => ({
         ...prev,
-        registeredActivityIds: registeredIds,
-        skpiPointsAccumulated: points
+        registeredActivityIds: registeredIds
       }));
     }
-  }, [registrations, activities, student.nim, isRegistered]);
+  }, [registrations, student.nim, isRegistered]);
 
   // Synchronize registered counts dynamically based on verified (APPROVED) registrations
   const activitiesWithUpdatedCounts = React.useMemo(() => {
@@ -205,20 +265,15 @@ export default function App() {
 
     const updatedRegs = registrations.map(reg => {
       if (reg.id === regId) {
-        // Also update student SKPI score points
-        const correspondingActivity = activities.find(a => a.id === reg.activityId);
-        if (correspondingActivity) {
-          // Increment points
+        if (reg.studentNim.trim() === student.nim.trim()) {
           setStudent(prev => {
             const alreadyRegistered = prev.registeredActivityIds.includes(reg.activityId);
             const nextRegistered = alreadyRegistered 
               ? prev.registeredActivityIds 
               : [...prev.registeredActivityIds, reg.activityId];
-            
             return {
               ...prev,
-              registeredActivityIds: nextRegistered,
-              skpiPointsAccumulated: prev.skpiPointsAccumulated + correspondingActivity.skpiPoints
+              registeredActivityIds: nextRegistered
             };
           });
         }
@@ -227,7 +282,7 @@ export default function App() {
       return reg;
     });
     setRegistrations(updatedRegs);
-    alert('Registrasi telah disetujui (Approved). Riwayat kegiatan mahasiswa telah diperbarui!');
+    alert('Registrasi telah disetujui (Approved). Status pendaftaran mahasiswa telah diperbarui!');
   };
 
   const handleRejectRegistration = (regId: string) => {
@@ -271,18 +326,29 @@ export default function App() {
 
     // Keep student profile and SKPI score points in sync if they belong to active student
     if (targetReg.studentNim.trim() === student.nim.trim()) {
-      setStudent(prev => {
-        // If it was APPROVED, decrement SKPI points
-        const correspondingActivity = activities.find(a => a.id === targetReg.activityId);
-        const pointsToDecrement = (targetReg.status === 'APPROVED' && correspondingActivity) ? correspondingActivity.skpiPoints : 0;
-        
-        return {
-          ...prev,
-          registeredActivityIds: prev.registeredActivityIds.filter(id => id !== targetReg.activityId),
-          skpiPointsAccumulated: Math.max(0, prev.skpiPointsAccumulated - pointsToDecrement)
-        };
-      });
+      setStudent(prev => ({
+        ...prev,
+        registeredActivityIds: prev.registeredActivityIds.filter(id => id !== targetReg.activityId)
+      }));
     }
+
+    // Trigger explicit alert feedback so the admin is confident the registration is deleted
+    alert(`Berkas pendaftaran ${targetReg.studentName} (NIM: ${targetReg.studentNim}) pada kegiatan "${targetReg.activityTitle}" berhasil dihapus secara permanen.`);
+  };
+
+  const handleDeleteStudent = (nim: string, name: string) => {
+    // 1. Remove from registeredStudents list
+    setRegisteredStudents(prev => prev.filter(s => s.nim.trim() !== nim.trim()));
+    
+    // 2. Remove all registrations for this student
+    setRegistrations(prev => prev.filter(reg => reg.studentNim.trim() !== nim.trim()));
+
+    // 3. If currently logged-in student, log them out!
+    if (student && student.nim.trim() === nim.trim()) {
+      handleLogout();
+    }
+
+    alert(`Akun mahasiswa "${name}" (NIM: ${nim}) beserta semua riwayat pendaftarannya berhasil dihapus dari database.`);
   };
 
   const handleFormSubmit = (regData: Omit<Registration, 'id' | 'registrationDate' | 'status'>) => {
@@ -504,12 +570,14 @@ export default function App() {
               <AdminPanel 
                 activities={activitiesWithUpdatedCounts}
                 registrations={registrations}
+                studentsList={registeredStudents}
                 onApproveRegistration={handleApproveRegistration}
                 onRejectRegistration={handleRejectRegistration}
                 onDeleteRegistration={handleDeleteRegistration}
                 onAddActivity={handleAddActivity}
                 onEditActivity={handleEditActivity}
                 onDeleteActivity={handleDeleteActivity}
+                onDeleteStudent={handleDeleteStudent}
                 plhRektorName={plhRektorName}
                 onUpdatePlhRektorName={setPlhRektorName}
                 officialContactName={officialContactName}

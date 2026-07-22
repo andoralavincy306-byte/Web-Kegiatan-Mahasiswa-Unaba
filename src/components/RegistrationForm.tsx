@@ -18,6 +18,7 @@ export default function RegistrationForm({ activity, student, registrations = []
   const [phone, setPhone] = useState('');
   const [department, setDepartment] = useState(student.department);
   const [semester, setSemester] = useState(student.semester);
+  const [faculty, setFaculty] = useState(student.faculty || 'Fakultas Psikologi dan Sains');
 
   // Form states
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,11 +29,95 @@ export default function RegistrationForm({ activity, student, registrations = []
     reg => reg.activityId === activity.id && reg.studentNim.trim() === nim.trim()
   );
 
+  const playSuccessSound = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      const now = ctx.currentTime;
+      
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(659.25, now);
+      gain1.gain.setValueAtTime(0.12, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.35);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(880.00, now + 0.1);
+      gain2.gain.setValueAtTime(0.12, now + 0.1);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.1);
+      osc2.stop(now + 0.5);
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  const checkRequirements = () => {
+    if (!activity.requirements || activity.requirements.length === 0) {
+      return { meets: true };
+    }
+    
+    for (const req of activity.requirements) {
+      const lowerReq = req.toLowerCase();
+      
+      if (lowerReq.includes('semester')) {
+        const match = lowerReq.match(/semester\s*(\d+)/);
+        if (match) {
+          const requiredSemester = parseInt(match[1]);
+          if (semester < requiredSemester) {
+            return {
+              meets: false,
+              reason: `Minimal Semester ${requiredSemester} (Anda berada di Semester ${semester})`
+            };
+          }
+        }
+      }
+
+      const majors = ['psikologi', 'sistem informasi', 'akuntansi', 'manajemen', 'kesehatan masyarakat', 'administrasi masyarakat'];
+      for (const major of majors) {
+        if (lowerReq.includes(major) && department.toLowerCase() !== major) {
+          return {
+            meets: false,
+            reason: `Dikhususkan untuk Program Studi ${major.toUpperCase()} (Anda di Prodi ${department})`
+          };
+        }
+      }
+
+      const faculties = ['psikologi dan sains', 'ekonomi', 'kesehatan'];
+      for (const fac of faculties) {
+        if (lowerReq.includes(fac) && !faculty.toLowerCase().includes(fac)) {
+          return {
+            meets: false,
+            reason: `Dikhususkan untuk Fakultas ${fac.toUpperCase()} (Anda di ${faculty})`
+          };
+        }
+      }
+    }
+    return { meets: true };
+  };
+
+  const reqCheck = checkRequirements();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isDuplicate) {
       alert("Pendaftaran Ganda Terdeteksi: Anda sudah terdaftar atau mengajukan pendaftaran untuk kegiatan ini.");
+      return;
+    }
+
+    if (!reqCheck.meets) {
+      alert("anda belum bisa mendaftar dikarena belum memenuhi syarat sebagai peserta");
       return;
     }
 
@@ -42,6 +127,8 @@ export default function RegistrationForm({ activity, student, registrations = []
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmitSuccess(true);
+      
+      playSuccessSound();
       
       // Callback to save state
       onSubmit({
@@ -53,6 +140,7 @@ export default function RegistrationForm({ activity, student, registrations = []
         studentPhone: phone || '0812-XXXX-XXXX',
         studentDepartment: department,
         studentSemester: semester,
+        studentFaculty: faculty,
         uploadedKtmUrl: 'pendaftaran_manual_aktif.jpg'
       });
     }, 1200);
@@ -135,6 +223,22 @@ export default function RegistrationForm({ activity, student, registrations = []
         {/* Form elements body */}
         <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
           
+          {/* Requirements Not Met Warning */}
+          {!reqCheck.meets && (
+            <div className="rounded-xl border border-rose-350 bg-rose-50 p-4 text-xs text-rose-800 flex items-start space-x-2.5 shadow-sm">
+              <AlertCircle className="h-5 w-5 shrink-0 text-rose-600 mt-0.5" />
+              <div className="space-y-1 text-left">
+                <span className="font-extrabold block text-rose-950 uppercase tracking-wide text-[11px]">Syarat Tidak Terpenuhi</span>
+                <p className="font-bold text-rose-850 text-sm leading-normal">
+                  "anda belum bisa mendaftar dikarena belum memenuhi syarat sebagai peserta"
+                </p>
+                <p className="text-[11px] text-rose-700 italic font-medium mt-1">
+                  Penyebab: {reqCheck.reason}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Duplicate Registration Blocked Warning */}
           {isDuplicate && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-start space-x-2.5 animate-pulse">
@@ -188,6 +292,25 @@ export default function RegistrationForm({ activity, student, registrations = []
                 placeholder="Contoh: 10123045"
                 className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-mono font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
               />
+            </div>
+
+            {/* Faculty Field */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 flex items-center space-x-1">
+                <Building2 className="h-3.5 w-3.5 text-gray-400" />
+                <span>Fakultas</span>
+                <span className="text-rose-500 font-extrabold">*</span>
+              </label>
+              <select
+                required
+                value={faculty}
+                onChange={(e) => setFaculty(e.target.value)}
+                className="w-full rounded-xl border border-gray-250 bg-slate-50 px-4 py-3 text-sm font-semibold text-gray-800 transition-all focus:border-univ-blue-600 focus:bg-white focus:outline-none"
+              >
+                <option value="Fakultas Psikologi dan Sains">Fakultas Psikologi dan Sains</option>
+                <option value="Fakultas Ekonomi">Fakultas Ekonomi</option>
+                <option value="Fakultas Kesehatan">Fakultas Kesehatan</option>
+              </select>
             </div>
 
             {/* Department (Major) Field */}

@@ -249,11 +249,17 @@ export default function ActivitiesList({
                     </span>
                   </div>
 
-                  {/* Bubble points counter overlay bottom-left */}
-                  <div className="absolute bottom-3 left-3 flex items-center space-x-1 rounded-lg bg-univ-orange-500/90 backdrop-blur-sm border border-univ-orange-600/30 px-2.5 py-1 text-xs font-extrabold text-white shadow">
-                    <Award className="h-3.5 w-3.5 text-white" />
-                    <span>E-Sertifikat Resmi</span>
-                  </div>
+                  {/* Certificate availability overlay badge */}
+                  {act.hasCertificate !== false && (act.hasCertificate || act.certificateUploaded) ? (
+                    <div className="absolute bottom-3 left-3 flex items-center space-x-1 rounded-lg bg-emerald-600/90 backdrop-blur-sm border border-emerald-500/30 px-2.5 py-1 text-xs font-extrabold text-white shadow">
+                      <Award className="h-3.5 w-3.5 text-white" />
+                      <span>🎓 E-Sertifikat Tersedia</span>
+                    </div>
+                  ) : (
+                    <div className="absolute bottom-3 left-3 flex items-center space-x-1 rounded-lg bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 px-2.5 py-1 text-[11px] font-bold text-slate-200 shadow">
+                      <span>🚫 Tanpa Sertifikat</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Card Content body */}

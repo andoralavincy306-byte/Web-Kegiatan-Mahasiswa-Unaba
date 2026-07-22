@@ -31,7 +31,9 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     contactPerson: {
       name: 'Aditya Herlambang',
       phone: '0812-3456-7890'
-    }
+    },
+    hasCertificate: true,
+    certificateUploaded: true
   },
   {
     id: 'act-2',
@@ -62,7 +64,9 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     contactPerson: {
       name: 'Dewi Lestari',
       phone: '0857-1122-3344'
-    }
+    },
+    hasCertificate: true,
+    certificateUploaded: true
   },
   {
     id: 'act-3',
@@ -94,7 +98,9 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     contactPerson: {
       name: 'Dosen Koordinator KKN',
       phone: '0813-9090-8080'
-    }
+    },
+    hasCertificate: false,
+    certificateUploaded: false
   },
   {
     id: 'act-4',
@@ -155,7 +161,9 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     contactPerson: {
       name: 'Fakultas Teknik & Riset UNABA',
       phone: '0812-9988-7766'
-    }
+    },
+    hasCertificate: true,
+    certificateUploaded: true
   },
   {
     id: 'act-6',
@@ -184,7 +192,9 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     contactPerson: {
       name: 'Biro Admin Akademik UNABA',
       phone: '0821-2233-4455'
-    }
+    },
+    hasCertificate: true,
+    certificateUploaded: true
   }
 ];
 
@@ -194,94 +204,24 @@ export const INITIAL_STUDENT: StudentProfile = {
   email: 'andora.lavincy@student.unaba.ac.id',
   department: 'Sistem Informasi',
   semester: 2,
-  skpiPointsAccumulated: 0,
-  registeredActivityIds: [],
+  skpiPointsAccumulated: 25,
+  registeredActivityIds: ['act-1'],
   faculty: 'Fakultas Psikologi dan Sains'
 };
 
 export const INITIAL_REGISTRATIONS: Registration[] = [
   {
-    id: 'reg-mock-1',
+    id: 'reg-andora-1',
     activityId: 'act-1',
     activityTitle: 'Latihan Kepemimpinan Manajemen Mahasiswa (LKMM-TD) 2026',
-    studentName: 'Ahmad Fauzi',
-    studentNim: '10123001',
-    studentEmail: 'ahmad.fauzi@student.unaba.ac.id',
-    studentPhone: '0812-1111-2222',
+    studentName: 'Andora Lavincy',
+    studentNim: '10123045',
+    studentEmail: 'andora.lavincy@student.unaba.ac.id',
+    studentPhone: '0812-3456-7890',
     studentDepartment: 'Sistem Informasi',
     studentSemester: 2,
-    uploadedKtmUrl: 'ktm_ahmad_fauzi.jpg',
-    registrationDate: '2026-06-18 10:00',
-    status: 'APPROVED'
-  },
-  {
-    id: 'reg-mock-2',
-    activityId: 'act-1',
-    activityTitle: 'Latihan Kepemimpinan Manajemen Mahasiswa (LKMM-TD) 2026',
-    studentName: 'Siti Aminah',
-    studentNim: '10123005',
-    studentEmail: 'siti.aminah@student.unaba.ac.id',
-    studentPhone: '0812-2222-3333',
-    studentDepartment: 'Sistem Informasi',
-    studentSemester: 4,
-    uploadedKtmUrl: 'ktm_siti_aminah.jpg',
-    registrationDate: '2026-06-18 14:15',
-    status: 'APPROVED'
-  },
-  {
-    id: 'reg-mock-3',
-    activityId: 'act-2',
-    activityTitle: 'UNABA Badminton Campus Cup XI',
-    studentName: 'Siti Rahmawati',
-    studentNim: '10123180',
-    studentEmail: 'siti.rahma@student.unaba.ac.id',
-    studentPhone: '0857-8899-7766',
-    studentDepartment: 'Kesehatan Masyarakat',
-    studentSemester: 4,
-    uploadedKtmUrl: 'ktm_siti_rahma.jpg',
-    registrationDate: '2026-06-19 08:30',
-    status: 'PENDING'
-  },
-  {
-    id: 'reg-mock-4',
-    activityId: 'act-2',
-    activityTitle: 'UNABA Badminton Campus Cup XI',
-    studentName: 'Putra Pratama',
-    studentNim: '10123012',
-    studentEmail: 'putra.pratama@student.unaba.ac.id',
-    studentPhone: '0813-4455-6677',
-    studentDepartment: 'Manajemen',
-    studentSemester: 6,
-    uploadedKtmUrl: 'ktm_putra.jpg',
-    registrationDate: '2026-06-19 11:45',
-    status: 'APPROVED'
-  },
-  {
-    id: 'reg-mock-5',
-    activityId: 'act-5',
-    activityTitle: 'Lomba Karya Tulis Ilmiah Nasional (LKTIN) Anak Bangsa 2026',
-    studentName: 'Randi Wijaya',
-    studentNim: '10123089',
-    studentEmail: 'randi.wijaya@student.unaba.ac.id',
-    studentPhone: '0852-9988-7766',
-    studentDepartment: 'Sistem Informasi',
-    studentSemester: 2,
-    uploadedKtmUrl: 'ktm_randi.jpg',
-    registrationDate: '2026-06-17 09:12',
-    status: 'APPROVED'
-  },
-  {
-    id: 'reg-mock-6',
-    activityId: 'act-5',
-    activityTitle: 'Lomba Karya Tulis Ilmiah Nasional (LKTIN) Anak Bangsa 2026',
-    studentName: 'Diana Putri',
-    studentNim: '10123098',
-    studentEmail: 'diana.putri@student.unaba.ac.id',
-    studentPhone: '0821-3344-5566',
-    studentDepartment: 'Akuntansi',
-    studentSemester: 4,
-    uploadedKtmUrl: 'ktm_diana.jpg',
-    registrationDate: '2026-06-17 15:40',
+    uploadedKtmUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400&q=80',
+    registrationDate: '2026-06-18 09:00',
     status: 'APPROVED'
   }
 ];
