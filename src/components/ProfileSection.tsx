@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StudentProfile, Registration, Activity } from '../types';
-import { Award, Mail, BookOpen, Clock, CheckCircle2, XCircle, Printer, CalendarDays, Key, MapPin } from 'lucide-react';
+import { Award, Mail, BookOpen, Clock, CheckCircle2, XCircle, Printer, CalendarDays, Key, MapPin, Download, ShieldCheck, Lock } from 'lucide-react';
+import CertificateModal from './CertificateModal';
 
 interface ProfileSectionProps {
   student: StudentProfile;
@@ -12,6 +13,9 @@ interface ProfileSectionProps {
 }
 
 export default function ProfileSection({ student, registrations, activities, onViewActivityDetails, plhRektorName, onLogout }: ProfileSectionProps) {
+  // Modal state for viewing/downloading e-certificate
+  const [selectedCertReg, setSelectedCertReg] = useState<{ reg: Registration; activity: Activity } | null>(null);
+
   // Filter registrations belonging to this student (by NIM)
   const studentRegistrations = registrations.filter(r => r.studentNim === student.nim);
 
@@ -390,17 +394,6 @@ export default function ProfileSection({ student, registrations, activities, onV
     }
   };
 
-  // Calculate scores
-  const totalPointsApproved = studentRegistrations
-    .filter(r => r.status === 'APPROVED')
-    .reduce((sum, r) => {
-      const act = activities.find(a => a.id === r.activityId);
-      return sum + (act ? act.skpiPoints : 0);
-    }, 0);
-
-  const targetPoints = 35;
-  const progressPercent = Math.min(Math.round((totalPointsApproved / targetPoints) * 100), 100);
-
   return (
     <div id="profile-container" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Page Title Header */}
@@ -527,13 +520,21 @@ export default function ProfileSection({ student, registrations, activities, onV
                                 {activity.category}
                               </span>
                             )}
-                            {activity && activity.certificateUploaded ? (
-                              <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
-                                ✓ E-Sertifikat Tersedia
-                              </span>
+                            {activity && (activity.hasCertificate !== false && (activity.hasCertificate || activity.certificateUploaded)) ? (
+                              activity.allowCertificateDownload !== false ? (
+                                <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 flex items-center space-x-1">
+                                  <Award className="h-3 w-3 text-emerald-600" />
+                                  <span>🎓 E-Sertifikat Siap Unduh</span>
+                                </span>
+                              ) : (
+                                <span className="rounded bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800 flex items-center space-x-1">
+                                  <Lock className="h-3 w-3 text-amber-600" />
+                                  <span>🎓 E-Sertifikat (Belum Dibuka)</span>
+                                </span>
+                              )
                             ) : (
-                              <span className="rounded bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
-                                ⏳ Sertifikat Belum Di-upload oleh Admin
+                              <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                                🚫 Tanpa Sertifikat
                               </span>
                             )}
                           </div>
@@ -544,17 +545,24 @@ export default function ProfileSection({ student, registrations, activities, onV
                           {getStatusBadge(reg.status)}
                           
                           {reg.status === 'APPROVED' ? (
-                            activity && activity.certificateUploaded ? (
-                              <button
-                                onClick={() => handlePrintIndividualCertificate(reg)}
-                                className="text-xs font-bold text-univ-orange-700 hover:text-univ-orange-900 inline-flex items-center space-x-1 border border-univ-orange-100 rounded-lg px-2.5 py-1.5 bg-white shadow-sm hover:shadow hover:bg-univ-orange-50/10 cursor-pointer transition-all"
-                              >
-                                <Printer className="h-3.5 w-3.5" />
-                                <span>Cetak Sertifikat</span>
-                              </button>
+                            activity && (activity.hasCertificate !== false && (activity.hasCertificate || activity.certificateUploaded)) ? (
+                              activity.allowCertificateDownload !== false ? (
+                                <button
+                                  onClick={() => setSelectedCertReg({ reg, activity })}
+                                  className="text-xs font-extrabold text-univ-orange-700 hover:text-white inline-flex items-center space-x-1.5 border border-univ-orange-200 rounded-xl px-3 py-1.5 bg-gradient-to-r from-univ-orange-50 to-amber-50 hover:from-univ-orange-500 hover:to-amber-600 shadow-sm transition-all cursor-pointer"
+                                >
+                                  <Award className="h-4 w-4" />
+                                  <span>Unduh / Cetak E-Sertifikat</span>
+                                </button>
+                              ) : (
+                                <div className="text-xs font-bold text-amber-800 border border-amber-200 rounded-xl px-3 py-1.5 bg-amber-50/90 flex items-center space-x-1.5 shadow-2xs" title="Panitia / Admin belum membuka akses download sertifikat ini">
+                                  <Lock className="h-3.5 w-3.5 text-amber-600" />
+                                  <span>Belum Boleh Diunduh (Dikunci Admin)</span>
+                                </div>
+                              )
                             ) : (
                               <span className="text-[10px] text-gray-500 font-medium italic">
-                                Belum dapat dicetak (Sertifikat belum di-upload)
+                                Kegiatan ini tidak menerbitkan sertifikat
                               </span>
                             )
                           ) : reg.status === 'PENDING' ? (
@@ -574,6 +582,28 @@ export default function ProfileSection({ student, registrations, activities, onV
         </div>
 
       </div>
+
+      {/* Interactive E-Certificate Modal */}
+      {selectedCertReg && (
+        <CertificateModal
+          isOpen={true}
+          onClose={() => setSelectedCertReg(null)}
+          studentName={student.name}
+          studentNim={student.nim}
+          studentDepartment={student.department}
+          studentFaculty={student.faculty}
+          activityTitle={selectedCertReg.activity.title}
+          activityCategory={selectedCertReg.activity.category}
+          eventDate={selectedCertReg.activity.eventDate}
+          location={selectedCertReg.activity.location}
+          registrationId={selectedCertReg.reg.id}
+          skpiPoints={selectedCertReg.activity.skpiPoints}
+          hasCertificate={selectedCertReg.activity.hasCertificate}
+          plhRektorName={plhRektorName}
+          certificateSignerName={selectedCertReg.activity.certificateSignerName}
+          certificateSignerRole={selectedCertReg.activity.certificateSignerRole}
+        />
+      )}
     </div>
   );
 }

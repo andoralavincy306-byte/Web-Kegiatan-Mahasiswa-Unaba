@@ -36,6 +36,10 @@ export interface Activity {
   };
   certificateUploaded?: boolean;
   certificateTemplateUrl?: string;
+  hasCertificate?: boolean; // Option whether certificate is provided for this activity
+  certificateSignerName?: string;
+  certificateSignerRole?: string;
+  allowCertificateDownload?: boolean; // Option whether students are allowed to download the certificate
 }
 
 export interface Registration {

@@ -80,6 +80,43 @@ export default function ActivityDetails({
             </div>
           </div>
 
+          {/* Certificate Notice Banner */}
+          {activity.hasCertificate !== false && (activity.hasCertificate || activity.certificateUploaded) ? (
+            <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-5 shadow-sm flex items-center space-x-4">
+              <div className="p-3 rounded-xl bg-emerald-500 text-white shrink-0 shadow-sm">
+                <Award className="h-6 w-6" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-200 text-emerald-800 uppercase tracking-wide">
+                  🎓 E-Sertifikat Tersedia
+                </span>
+                <h4 className="text-sm font-extrabold text-slate-900">
+                  Sertifikat Otomatis Diterbitkan Sesuai Nama Mahasiswa
+                </h4>
+                <p className="text-xs text-slate-600">
+                  Setelah pendaftaran disetujui, E-Sertifikat resmi terverifikasi dengan nama & NIM Anda dapat diunduh langsung di menu Profil Saya.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm flex items-center space-x-4">
+              <div className="p-3 rounded-xl bg-slate-200 text-slate-600 shrink-0">
+                <Award className="h-6 w-6" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold bg-slate-200 text-slate-700 uppercase tracking-wide">
+                  🚫 Tanpa Sertifikat
+                </span>
+                <h4 className="text-sm font-extrabold text-slate-800">
+                  Kegiatan Ini Tidak Menyediakan E-Sertifikat
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Kegiatan ini diselenggarakan sebagai partisipasi/apresiasi umum tanpa penerbitan lembar E-Sertifikat resmi.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Qualifications & Benefits Layout blocks */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
