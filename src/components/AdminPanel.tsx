@@ -19,6 +19,7 @@ interface AdminPanelProps {
   onEditActivity: (activity: Activity) => void;
   onDeleteActivity: (id: string) => void;
   onDeleteStudent: (nim: string, name: string) => void;
+  onUpdateStudent?: (student: StudentProfile) => void;
   plhRektorName: string;
   onUpdatePlhRektorName: (name: string) => void;
   officialContactName: string;
@@ -50,6 +51,7 @@ export default function AdminPanel({
   onEditActivity,
   onDeleteActivity,
   onDeleteStudent,
+  onUpdateStudent,
   plhRektorName,
   onUpdatePlhRektorName,
   officialContactName,
@@ -64,6 +66,41 @@ export default function AdminPanel({
   // Search filters for registrations and students
   const [regSearch, setRegSearch] = useState('');
   const [studentSearch, setStudentSearch] = useState('');
+
+  // Editing student state
+  const [editingStudent, setEditingStudent] = useState<StudentProfile | null>(null);
+  const [editStudentName, setEditStudentName] = useState('');
+  const [editStudentDepartment, setEditStudentDepartment] = useState('');
+  const [editStudentFaculty, setEditStudentFaculty] = useState('');
+  const [editStudentSemester, setEditStudentSemester] = useState<number>(1);
+  const [editStudentEmail, setEditStudentEmail] = useState('');
+
+  const handleOpenStudentEdit = (stu: StudentProfile) => {
+    setEditingStudent(stu);
+    setEditStudentName(stu.name);
+    setEditStudentDepartment(stu.department || 'Sistem Informasi');
+    setEditStudentFaculty(stu.faculty || 'Fakultas Psikologi dan Sains');
+    setEditStudentSemester(stu.semester || 1);
+    setEditStudentEmail(stu.email || '');
+  };
+
+  const handleSaveStudentEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    const updated: StudentProfile = {
+      ...editingStudent,
+      name: editStudentName,
+      department: editStudentDepartment,
+      faculty: editStudentFaculty,
+      semester: editStudentSemester,
+      email: editStudentEmail
+    };
+    if (onUpdateStudent) {
+      onUpdateStudent(updated);
+    }
+    setEditingStudent(null);
+    alert(`Data mahasiswa "${updated.name}" (Program Studi: ${updated.department}) berhasil diperbarui & disinkronkan ke seluruh portal!`);
+  };
 
   const filteredRegistrations = registrations.filter(r => 
     r.studentName.toLowerCase().includes(regSearch.toLowerCase()) ||
@@ -164,6 +201,7 @@ export default function AdminPanel({
   const [newQuota, setNewQuota] = useState(100);
   const [newLocation, setNewLocation] = useState('');
   const [newEventDate, setNewEventDate] = useState('');
+  const [newEventTime, setNewEventTime] = useState('08:00 - 12:00 WIB');
   const [newDeadline, setNewDeadline] = useState('');
   const [newRequirements, setNewRequirements] = useState('');
   const [newBenefits, setNewBenefits] = useState('');
@@ -221,6 +259,7 @@ export default function AdminPanel({
   const [editQuota, setEditQuota] = useState(100);
   const [editLocation, setEditLocation] = useState('');
   const [editEventDate, setEditEventDate] = useState('');
+  const [editEventTime, setEditEventTime] = useState('08:00 - 12:00 WIB');
   const [editDeadline, setEditDeadline] = useState('');
   const [editRequirements, setEditRequirements] = useState('');
   const [editBenefits, setEditBenefits] = useState('');
@@ -304,6 +343,7 @@ export default function AdminPanel({
       imageUrl: newImageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800&h=450',
       registrationDeadline: newDeadline,
       eventDate: newEventDate,
+      eventTime: newEventTime || '08:00 - 12:00 WIB',
       quota: Number(newQuota) || 50,
       registeredCount: 0,
       location: newLocation,
@@ -330,6 +370,7 @@ export default function AdminPanel({
     setNewQuota(100);
     setNewLocation('');
     setNewEventDate('');
+    setNewEventTime('08:00 - 12:00 WIB');
     setNewDeadline('');
     setNewRequirements('');
     setNewBenefits('');
@@ -354,6 +395,7 @@ export default function AdminPanel({
     setEditQuota(act.quota);
     setEditLocation(act.location);
     setEditEventDate(act.eventDate);
+    setEditEventTime(act.eventTime || '08:00 - 12:00 WIB');
     setEditDeadline(act.registrationDeadline);
     setEditImageUrl(act.imageUrl);
     setEditRequirements(act.requirements.join(', '));
@@ -387,6 +429,7 @@ export default function AdminPanel({
       imageUrl: editImageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800&h=450',
       registrationDeadline: editDeadline,
       eventDate: editEventDate,
+      eventTime: editEventTime || '08:00 - 12:00 WIB',
       quota: Number(editQuota) || 50,
       location: editLocation,
       benefits: editBenefits ? editBenefits.split(',').map(b => b.trim()) : ['Sertifikat Resmi UNABA', 'Voucher Konsumsi'],
@@ -1017,16 +1060,28 @@ export default function AdminPanel({
                   </div>
 
                   {/* Event Schedule & Deadline */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-gray-600">Jam & Tanggal Kegiatan *</label>
+                      <label className="text-[11px] font-bold text-gray-600">Tanggal Pelaksanaan *</label>
                       <input
                         type="text"
                         required
-                        placeholder="Contoh: 15 Juli 2026, 09:00 WIB"
+                        placeholder="Contoh: 15 Juli 2026"
                         value={editEventDate}
                         onChange={(e) => setEditEventDate(e.target.value)}
                         className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-600">Jam / Waktu Kegiatan *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Contoh: 08:00 - 12:00 WIB"
+                        value={editEventTime}
+                        onChange={(e) => setEditEventTime(e.target.value)}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-univ-blue-800"
                       />
                     </div>
 
@@ -1335,16 +1390,28 @@ export default function AdminPanel({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-600">Tgl & Jam Kegiatan *</label>
+                        <label className="text-[11px] font-bold text-gray-600">Tanggal Pelaksanaan *</label>
                         <input
                           type="text"
                           required
-                          placeholder="Contoh: 25 Juli 2026, 09:00 WIB"
+                          placeholder="Contoh: 25 Juli 2026"
                           value={newEventDate}
                           onChange={(e) => setNewEventDate(e.target.value)}
                           className="w-full rounded-lg border border-gray-200 px-2 py-2 text-xs font-semibold"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-600">Jam / Waktu Kegiatan *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Contoh: 08:00 - 12:00 WIB"
+                          value={newEventTime}
+                          onChange={(e) => setNewEventTime(e.target.value)}
+                          className="w-full rounded-lg border border-gray-200 px-2 py-2 text-xs font-semibold text-univ-blue-800"
                         />
                       </div>
 
@@ -1677,10 +1744,14 @@ export default function AdminPanel({
                               </div>
                               <h4 className="text-xs font-extrabold text-slate-900 leading-snug line-clamp-1">{act.title}</h4>
                               
-                              <div className="flex items-center space-x-3 text-[10px] text-gray-500 font-medium">
+                              <div className="flex items-center space-x-3 text-[10px] text-gray-500 font-medium flex-wrap gap-y-1">
                                 <span className="flex items-center space-x-1">
                                   <Calendar className="h-3 w-3 text-univ-orange-500" />
                                   <span className="text-gray-700">{act.eventDate}</span>
+                                </span>
+                                <span className="flex items-center space-x-1">
+                                  <Clock className="h-3 w-3 text-univ-blue-700" />
+                                  <span className="text-univ-blue-800 font-bold">{act.eventTime || '08:00 - 12:00 WIB'}</span>
                                 </span>
                                 <span className="flex items-center space-x-1">
                                   <MapPin className="h-3 w-3 text-teal-600" />

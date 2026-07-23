@@ -351,6 +351,30 @@ export default function App() {
     alert(`Akun mahasiswa "${name}" (NIM: ${nim}) beserta semua riwayat pendaftarannya berhasil dihapus dari database.`);
   };
 
+  const handleUpdateStudent = (updatedStudent: StudentProfile) => {
+    setRegisteredStudents(prev => prev.map(s => s.nim.trim() === updatedStudent.nim.trim() ? updatedStudent : s));
+    
+    if (student && student.nim.trim() === updatedStudent.nim.trim()) {
+      setStudent(prev => ({
+        ...prev,
+        ...updatedStudent
+      }));
+    }
+
+    setRegistrations(prev => prev.map(reg => {
+      if (reg.studentNim.trim() === updatedStudent.nim.trim()) {
+        return {
+          ...reg,
+          studentName: updatedStudent.name,
+          studentDepartment: updatedStudent.department,
+          studentSemester: updatedStudent.semester,
+          studentFaculty: updatedStudent.faculty || reg.studentFaculty
+        };
+      }
+      return reg;
+    }));
+  };
+
   const handleFormSubmit = (regData: Omit<Registration, 'id' | 'registrationDate' | 'status'>) => {
     const newRegistration: Registration = {
       ...regData,
@@ -578,6 +602,7 @@ export default function App() {
                 onEditActivity={handleEditActivity}
                 onDeleteActivity={handleDeleteActivity}
                 onDeleteStudent={handleDeleteStudent}
+                onUpdateStudent={handleUpdateStudent}
                 plhRektorName={plhRektorName}
                 onUpdatePlhRektorName={setPlhRektorName}
                 officialContactName={officialContactName}

@@ -25,6 +25,7 @@ export interface Activity {
   imageUrl: string;
   registrationDeadline: string;
   eventDate: string;
+  eventTime?: string; // Jam / Waktu pelaksanaan kegiatan (e.g., '08:00 - 12:00 WIB')
   quota: number;
   registeredCount: number;
   location: string;

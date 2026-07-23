@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Activity, ActivityCategory, ActivityStatus, isEventDatePassed, isActivityArchived } from '../types';
-import { Search, Calendar, MapPin, Award, Users, Filter, ArrowUpDown, Check } from 'lucide-react';
+import { Search, Calendar, MapPin, Award, Users, Filter, ArrowUpDown, Check, Clock } from 'lucide-react';
 
 interface ActivitiesListProps {
   activities: Activity[];
@@ -84,8 +84,11 @@ export default function ActivitiesList({
   }, [activities, searchTerm, selectedCategory, selectedStatus, sortBy, currentTab]);
 
   // Color mapper for status
-  const getStatusStyle = (status: ActivityStatus) => {
-    switch (status) {
+  const getStatusStyle = (statusStr: string) => {
+    if (statusStr === 'Pendaftaran Telah Ditutup' || statusStr === ActivityStatus.CLOSED) {
+      return 'bg-rose-100 text-rose-800 border-rose-200';
+    }
+    switch (statusStr) {
       case ActivityStatus.OPEN:
         return 'bg-green-100 text-green-800 border-green-200';
       case ActivityStatus.UPCOMING:
@@ -94,8 +97,6 @@ export default function ActivitiesList({
         return 'bg-amber-100 text-amber-800 border-amber-200';
       case ActivityStatus.COMPLETED:
         return 'bg-gray-100 text-gray-800 border-gray-200';
-      case ActivityStatus.CLOSED:
-        return 'bg-rose-100 text-rose-800 border-rose-200';
       default:
         return 'bg-slate-100 text-slate-800 border-slate-200';
     }
@@ -222,6 +223,8 @@ export default function ActivitiesList({
             const seatsLeft = act.quota - act.registeredCount;
             const percentageUsed = Math.min(Math.round((act.registeredCount / act.quota) * 100), 100);
             const hasRegistered = registeredActivityIds.includes(act.id);
+            const isArchived = isActivityArchived(act) || currentTab === 'ARCHIVED';
+            const displayBadgeText = isArchived ? 'Pendaftaran Telah Ditutup' : act.status;
 
             return (
               <div
@@ -244,8 +247,8 @@ export default function ActivitiesList({
                   </div>
 
                   <div className="absolute top-3 right-3">
-                    <span className={`inline-block border rounded-lg px-2.5 py-1 text-xs font-extrabold shadow ${getStatusStyle(act.status)}`}>
-                      {act.status}
+                    <span className={`inline-block border rounded-lg px-2.5 py-1 text-xs font-extrabold shadow ${getStatusStyle(displayBadgeText)}`}>
+                      {displayBadgeText}
                     </span>
                   </div>
 
@@ -264,9 +267,16 @@ export default function ActivitiesList({
 
                 {/* Card Content body */}
                 <div className="flex flex-1 flex-col p-5">
-                  <span className="font-mono text-[10px] text-gray-400 font-bold tracking-wider block uppercase mb-1">
-                    Pelaksanaan: {act.eventDate}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-gray-500 font-bold tracking-wider mb-1">
+                    <span className="font-mono uppercase text-univ-blue-850">
+                      📅 {act.eventDate}
+                    </span>
+                    <span className="text-gray-300">•</span>
+                    <span className="font-mono text-univ-orange-700 flex items-center space-x-1">
+                      <Clock className="h-3 w-3 shrink-0 inline" />
+                      <span>Jam: {act.eventTime || '08:00 - 12:00 WIB'}</span>
+                    </span>
+                  </div>
                   
                   <h3 
                     onClick={() => onSelectActivity(act.id)}

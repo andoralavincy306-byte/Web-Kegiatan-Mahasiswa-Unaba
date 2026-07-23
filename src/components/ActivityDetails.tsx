@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Activity, ActivityStatus, isEventDatePassed, isActivityArchived } from '../types';
-import { ArrowLeft, Award, Calendar, MapPin, Users, Phone, ShieldCheck, CheckCircle2, UserCheck, HelpCircle, Check } from 'lucide-react';
+import { ArrowLeft, Award, Calendar, MapPin, Users, Phone, ShieldCheck, CheckCircle2, UserCheck, HelpCircle, Check, Clock } from 'lucide-react';
 
 interface ActivityDetailsProps {
   activity: Activity;
@@ -218,8 +218,16 @@ export default function ActivityDetails({
               <div className="flex items-start space-x-3.5 text-gray-655">
                 <Calendar className="h-5 w-5 shrink-0 text-univ-orange-500 mt-0.5" />
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase">Jadwal Pelaksanaan</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Jadwal Tanggal</p>
                   <p className="text-gray-900 font-semibold mt-0.5">{activity.eventDate}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3.5 text-gray-655">
+                <Clock className="h-5 w-5 shrink-0 text-univ-orange-500 mt-0.5" />
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Jam / Waktu Pelaksanaan</p>
+                  <p className="text-univ-blue-800 font-mono font-bold mt-0.5">{activity.eventTime || '08:00 - 12:00 WIB'}</p>
                 </div>
               </div>
 
