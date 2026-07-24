@@ -427,7 +427,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 font-sans selection:bg-univ-orange-100 selection:text-univ-orange-700">
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden flex-col bg-slate-50 font-sans selection:bg-univ-orange-100 selection:text-univ-orange-700">
       
       {/* Top sticky responsive Navbar */}
       <Header 
@@ -438,7 +438,7 @@ export default function App() {
       />
 
       {/* Main Content Area with Smooth Animation Page Transitions */}
-      <main className="flex-grow">
+      <main className="flex-grow w-full max-w-full overflow-x-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={activePage}
