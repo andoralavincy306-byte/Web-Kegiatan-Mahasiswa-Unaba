@@ -405,6 +405,10 @@ export default function App() {
           setStudent(newStudent);
           setIsRegistered(true);
         }} 
+        onAdminLogin={() => {
+          setIsRegistered(true);
+          setActivePage('ADMIN');
+        }}
       />
     );
   }

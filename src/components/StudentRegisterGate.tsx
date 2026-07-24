@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { StudentProfile } from '../types';
-import { GraduationCap, Mail, User, BookOpen, AlertCircle, Calendar, Hash, ArrowRight, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { GraduationCap, Mail, User, BookOpen, AlertCircle, Calendar, Hash, ArrowRight, CheckCircle2, ShieldAlert, Lock, KeyRound } from 'lucide-react';
 
 interface StudentRegisterGateProps {
   onRegisterComplete: (student: StudentProfile) => void;
+  onAdminLogin?: () => void;
 }
 
-export default function StudentRegisterGate({ onRegisterComplete }: StudentRegisterGateProps) {
-  // Mode toggle: 'REGISTER' or 'LOGIN'
-  const [mode, setMode] = useState<'REGISTER' | 'LOGIN'>('REGISTER');
+export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }: StudentRegisterGateProps) {
+  // Mode toggle: 'REGISTER' | 'LOGIN' | 'ADMIN'
+  const [mode, setMode] = useState<'REGISTER' | 'LOGIN' | 'ADMIN'>('REGISTER');
 
   // Registration controlled states
   const [name, setName] = useState('');
@@ -19,8 +20,12 @@ export default function StudentRegisterGate({ onRegisterComplete }: StudentRegis
   const [semester, setSemester] = useState(2);
   const [faculty, setFaculty] = useState('Fakultas Psikologi dan Sains');
 
-  // Login controlled states
+  // Student Login controlled states
   const [loginEmail, setLoginEmail] = useState('');
+
+  // Admin Login controlled states
+  const [adminUsername, setAdminUsername] = useState('admin');
+  const [adminPassword, setAdminPassword] = useState('admin123');
 
   // UI States
   const [errorMessage, setErrorMessage] = useState('');
@@ -158,6 +163,37 @@ export default function StudentRegisterGate({ onRegisterComplete }: StudentRegis
     }, 1500);
   };
 
+  // Admin login handler
+  const handleAdminSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (adminUsername === 'admin' && adminPassword === 'admin123') {
+      setSuccessMessage('Login Administrator Berhasil! Mengalihkan ke Panel Admin...');
+      setTimeout(() => {
+        if (onAdminLogin) {
+          onAdminLogin();
+        } else {
+          // Fallback if prop not supplied: register dummy admin profile
+          const adminStudent: StudentProfile = {
+            name: 'Administrator Portal',
+            nim: '99999999',
+            email: 'admin@unaba.ac.id',
+            department: 'Sistem Informasi',
+            semester: 8,
+            skpiPointsAccumulated: 100,
+            registeredActivityIds: [],
+            faculty: 'Fakultas Psikologi dan Sains'
+          };
+          onRegisterComplete(adminStudent);
+        }
+      }, 1000);
+    } else {
+      setErrorMessage('Kredensial Admin Salah! Username: admin, Password: admin123');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
       
@@ -171,10 +207,10 @@ export default function StudentRegisterGate({ onRegisterComplete }: StudentRegis
           <GraduationCap className="h-8 w-8" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          PORTAL <span className="text-univ-orange-500">MAHASISWA UNABA</span>
+          PORTAL <span className="text-univ-orange-500">TERPADU UNABA</span>
         </h1>
         <p className="text-xs text-gray-400 mt-1 max-w-md uppercase tracking-wider font-semibold">
-          Direktorat BKA • Universitas Anak Bangsa
+          Universitas Anak Bangsa • Sistem Informasi Kemahasiswaan
         </p>
       </div>
 
@@ -185,35 +221,53 @@ export default function StudentRegisterGate({ onRegisterComplete }: StudentRegis
         transition={{ duration: 0.5 }}
         className="w-full max-w-lg bg-slate-950/80 border border-slate-800/80 rounded-[2.5rem] p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.4)] backdrop-blur-xl z-10 text-left"
       >
-        {/* Step Mode Tab switches */}
-        <div className="flex bg-slate-900 border border-slate-800 rounded-2xl p-1.5 mb-8">
+        {/* Step Mode Tab switches (3 Options: Register, Student Login, Admin Login) */}
+        <div className="flex bg-slate-900 border border-slate-800 rounded-2xl p-1.5 mb-8 text-center">
           <button
+            type="button"
             onClick={() => {
               setMode('REGISTER');
               setErrorMessage('');
               setSuccessMessage('');
             }}
-            className={`flex-1 py-3 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 text-[11px] sm:text-xs font-semibold rounded-xl transition-all cursor-pointer ${
               mode === 'REGISTER'
                 ? 'bg-univ-orange-500 text-white shadow-md font-extrabold'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            Daftar Akun Baru
+            Daftar Mahasiswa
           </button>
           <button
+            type="button"
             onClick={() => {
               setMode('LOGIN');
               setErrorMessage('');
               setSuccessMessage('');
             }}
-            className={`flex-1 py-3 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 text-[11px] sm:text-xs font-semibold rounded-xl transition-all cursor-pointer ${
               mode === 'LOGIN'
                 ? 'bg-univ-orange-500 text-white shadow-md font-extrabold'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            Masuk dengan Gmail
+            Masuk Gmail
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('ADMIN');
+              setErrorMessage('');
+              setSuccessMessage('');
+            }}
+            className={`flex-1 py-2.5 text-[11px] sm:text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-1 ${
+              mode === 'ADMIN'
+                ? 'bg-univ-blue-800 text-white shadow-md font-extrabold border border-univ-blue-600'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Lock className="h-3 w-3 text-univ-orange-500" />
+            <span>Login Admin</span>
           </button>
         </div>
 
@@ -379,7 +433,7 @@ export default function StudentRegisterGate({ onRegisterComplete }: StudentRegis
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
-        ) : (
+        ) : mode === 'LOGIN' ? (
           /* --- LOGIN FORM MODE --- */
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-1.5 text-center sm:text-left mb-2">
@@ -426,6 +480,71 @@ export default function StudentRegisterGate({ onRegisterComplete }: StudentRegis
                 </span>
               </p>
             </div>
+          </form>
+        ) : (
+          /* --- ADMIN FORM MODE --- */
+          <form onSubmit={handleAdminSubmit} className="space-y-5">
+            <div className="space-y-1.5 text-center sm:text-left mb-2">
+              <h2 className="text-lg font-bold text-slate-100 flex items-center space-x-2">
+                <Lock className="h-5 w-5 text-univ-orange-500" />
+                <span>Masuk Portal Administrator</span>
+              </h2>
+              <p className="text-xs text-slate-450">Akses khusus pengelola BKA untuk memverifikasi pendaftaran dan mengelola kegiatan.</p>
+            </div>
+
+            {/* Username Field */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest block">Username Pengelola</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-600">
+                  <User className="h-4 w-4" />
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={adminUsername}
+                  onChange={(e) => setAdminUsername(e.target.value)}
+                  placeholder="admin"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-4 py-3.5 text-xs sm:text-sm font-semibold text-white placeholder-slate-600 transition-colors focus:outline-none focus:border-univ-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest block">Kata Sandi / Password</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-600">
+                  <KeyRound className="h-4 w-4" />
+                </span>
+                <input
+                  type="password"
+                  required
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="admin123"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-4 py-3.5 text-xs sm:text-sm font-mono text-white placeholder-slate-600 transition-colors focus:outline-none focus:border-univ-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3.5 text-xs text-gray-400 space-y-1">
+              <p className="font-bold text-slate-300 flex items-center space-x-1">
+                <ShieldAlert className="h-3.5 w-3.5 text-univ-orange-500 inline mr-1" />
+                <span>Petunjuk Akses Admin:</span>
+              </p>
+              <p className="text-[11px] text-gray-400">
+                Gunakan Username: <code className="text-univ-orange-400 font-mono font-bold">admin</code> dan Password: <code className="text-univ-orange-400 font-mono font-bold">admin123</code>
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-univ-blue-800 hover:bg-univ-blue-900 text-white font-extrabold text-xs sm:text-sm py-4 rounded-2xl mt-4 cursor-pointer transition-all active:scale-[0.98] flex items-center justify-center space-x-2 shadow-lg border border-univ-blue-600"
+            >
+              <span>Masuk Portal Admin</span>
+              <ArrowRight className="h-4 w-4 text-univ-orange-500" />
+            </button>
           </form>
         )}
       </motion.div>
