@@ -24,8 +24,8 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
   const [loginEmail, setLoginEmail] = useState('');
 
   // Admin Login controlled states
-  const [adminUsername, setAdminUsername] = useState('admin');
-  const [adminPassword, setAdminPassword] = useState('admin123');
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
 
   // UI States
   const [errorMessage, setErrorMessage] = useState('');
@@ -506,7 +506,7 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
                   required
                   value={adminUsername}
                   onChange={(e) => setAdminUsername(e.target.value)}
-                  placeholder="admin"
+                  placeholder="Masukkan Username Admin"
                   className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-4 py-3.5 text-xs sm:text-sm font-semibold text-white placeholder-slate-600 transition-colors focus:outline-none focus:border-univ-blue-500"
                 />
               </div>
@@ -524,20 +524,10 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
                   required
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder="admin123"
+                  placeholder="••••••••"
                   className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-4 py-3.5 text-xs sm:text-sm font-mono text-white placeholder-slate-600 transition-colors focus:outline-none focus:border-univ-blue-500"
                 />
               </div>
-            </div>
-
-            <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3.5 text-xs text-gray-400 space-y-1">
-              <p className="font-bold text-slate-300 flex items-center space-x-1">
-                <ShieldAlert className="h-3.5 w-3.5 text-univ-orange-500 inline mr-1" />
-                <span>Petunjuk Akses Admin:</span>
-              </p>
-              <p className="text-[11px] text-gray-400">
-                Gunakan Username: <code className="text-univ-orange-400 font-mono font-bold">admin</code> dan Password: <code className="text-univ-orange-400 font-mono font-bold">admin123</code>
-              </p>
             </div>
 
             <button
