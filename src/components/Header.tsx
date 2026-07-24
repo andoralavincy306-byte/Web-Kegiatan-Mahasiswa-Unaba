@@ -12,11 +12,17 @@ interface HeaderProps {
 export default function Header({ activePage, onChangePage, student, onLogout }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const isAdmin =
+    student.email === 'admin@unaba.ac.id' ||
+    student.nim === '99999999' ||
+    student.name.toLowerCase().includes('admin') ||
+    localStorage.getItem('uab_is_admin_authenticated') === 'true';
+
   const navigationItems = [
     { page: 'HOME' as PageType, label: 'Beranda', icon: Home },
     { page: 'ACTIVITIES' as PageType, label: 'Kegiatan', icon: Calendar },
     { page: 'PROFILE' as PageType, label: 'Pendaftaran Saya', icon: User },
-    { page: 'ADMIN' as PageType, label: 'Admin', icon: Lock },
+    ...(isAdmin ? [{ page: 'ADMIN' as PageType, label: 'Admin', icon: Lock }] : []),
   ];
 
   const handleNavClick = (page: PageType) => {
@@ -80,7 +86,7 @@ export default function Header({ activePage, onChangePage, student, onLogout }: 
         <div className="hidden lg:flex items-center space-x-3 border-l border-gray-200 pl-4">
           <div className="text-right">
             <p className="text-xs font-semibold text-gray-900">{student.name}</p>
-            <p className="text-[10px] font-mono text-gray-500">NIM: {student.nim}</p>
+            <p className="text-[10px] font-mono text-gray-500">{isAdmin ? 'Akses Admin' : `NIM: ${student.nim}`}</p>
           </div>
           <div 
             onClick={() => handleNavClick('PROFILE')}
@@ -139,29 +145,34 @@ export default function Header({ activePage, onChangePage, student, onLogout }: 
           </div>
 
           {/* Student Profile Quick View in Mobile Drawer */}
-          <div className="mt-4 border-t border-gray-100 pt-4 pb-2">
-            <div className="flex items-center justify-between px-4 mb-3">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-univ-blue-100 text-univ-blue-800 font-bold uppercase">
-                  {student.name.charAt(0)}
+          {(() => {
+            const isAdmin = student.email === 'admin@unaba.ac.id' || student.nim === '99999999' || student.name.toLowerCase().includes('admin') || localStorage.getItem('uab_is_admin_authenticated') === 'true';
+            return (
+              <div className="mt-4 border-t border-gray-100 pt-4 pb-2">
+                <div className="flex items-center justify-between px-4 mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-univ-blue-100 text-univ-blue-800 font-bold uppercase">
+                      {student.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{student.name}</p>
+                      <p className="text-xs font-semibold text-univ-orange-600">{isAdmin ? 'Admin' : student.department}</p>
+                      {!isAdmin && <p className="text-[10px] font-mono text-gray-400">NIM: {student.nim}</p>}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">{student.name}</p>
-                  <p className="text-xs text-gray-500">{student.department}</p>
-                  <p className="text-[10px] font-mono text-gray-400">NIM: {student.nim}</p>
-                </div>
+                {onLogout && (
+                  <button
+                    onClick={handleLogoutClick}
+                    className="mt-2 w-full flex items-center justify-center space-x-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 py-2.5 px-4 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Log Out / Ganti Akun</span>
+                  </button>
+                )}
               </div>
-            </div>
-            {onLogout && (
-              <button
-                onClick={handleLogoutClick}
-                className="mt-2 w-full flex items-center justify-center space-x-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 py-2.5 px-4 text-xs font-bold transition-all cursor-pointer"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Log Out / Ganti Akun</span>
-              </button>
-            )}
-          </div>
+            );
+          })()}
         </div>
       )}
     </header>

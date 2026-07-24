@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Activity, StudentProfile, Registration } from '../types';
 import { ArrowLeft, Check, AlertCircle, Sparkles, Building2, User2 } from 'lucide-react';
+import { useNotification } from './CenterNotification';
 
 interface RegistrationFormProps {
   activity: Activity;
@@ -11,6 +12,7 @@ interface RegistrationFormProps {
 }
 
 export default function RegistrationForm({ activity, student, registrations = [], onBack, onSubmit }: RegistrationFormProps) {
+  const { showNotification } = useNotification();
   // Controlled fields (prefilled from student structure)
   const [name, setName] = useState(student.name);
   const [nim, setNim] = useState(student.nim);
@@ -112,12 +114,12 @@ export default function RegistrationForm({ activity, student, registrations = []
     e.preventDefault();
 
     if (isDuplicate) {
-      alert("Pendaftaran Ganda Terdeteksi: Anda sudah terdaftar atau mengajukan pendaftaran untuk kegiatan ini.");
+      showNotification("Pendaftaran Ganda Terdeteksi: Anda sudah terdaftar atau mengajukan pendaftaran untuk kegiatan ini.", "warning");
       return;
     }
 
     if (!reqCheck.meets) {
-      alert("anda belum bisa mendaftar dikarena belum memenuhi syarat sebagai peserta");
+      showNotification("Anda belum memenuhi syarat sebagai peserta untuk kegiatan ini.", "error");
       return;
     }
 
@@ -129,6 +131,7 @@ export default function RegistrationForm({ activity, student, registrations = []
       setSubmitSuccess(true);
       
       playSuccessSound();
+      showNotification(`Pendaftaran Berhasil! Formulir Anda untuk "${activity.title}" telah diterima.`, "success", "Pendaftaran Terkirim");
       
       // Callback to save state
       onSubmit({

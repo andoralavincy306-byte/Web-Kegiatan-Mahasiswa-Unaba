@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { StudentProfile } from '../types';
 import { GraduationCap, Mail, User, BookOpen, AlertCircle, Calendar, Hash, ArrowRight, CheckCircle2, ShieldAlert, Lock, KeyRound } from 'lucide-react';
+import { useNotification } from './CenterNotification';
 
 interface StudentRegisterGateProps {
   onRegisterComplete: (student: StudentProfile) => void;
@@ -9,8 +10,10 @@ interface StudentRegisterGateProps {
 }
 
 export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }: StudentRegisterGateProps) {
+  const { showNotification } = useNotification();
   // Mode toggle: 'REGISTER' | 'LOGIN' | 'ADMIN'
   const [mode, setMode] = useState<'REGISTER' | 'LOGIN' | 'ADMIN'>('REGISTER');
+
 
   // Registration controlled states
   const [name, setName] = useState('');
@@ -73,13 +76,17 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
 
     // Primary general validation
     if (!name.trim() || !nim.trim() || !email.trim()) {
-      setErrorMessage('Harap lengkapi semua bidang isian formulir!');
+      const msg = 'Harap lengkapi semua bidang isian formulir!';
+      setErrorMessage(msg);
+      showNotification(msg, 'warning');
       return;
     }
 
     // NIM must be numeric
     if (!/^\d+$/.test(nim.trim())) {
-      setErrorMessage('Nomor Induk Mahasiswa (NIM) harus berupa angka saja!');
+      const msg = 'Nomor Induk Mahasiswa (NIM) harus berupa angka saja!';
+      setErrorMessage(msg);
+      showNotification(msg, 'error');
       return;
     }
 
@@ -87,21 +94,27 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
     const cleanedEmail = email.trim().toLowerCase();
     const isGmailFormat = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(cleanedEmail);
     if (!isGmailFormat) {
-      setErrorMessage('Alamat email wajib menggunakan domain Gmail resmi (@gmail.com)!');
+      const msg = 'Alamat email wajib menggunakan domain Gmail resmi (@gmail.com)!';
+      setErrorMessage(msg);
+      showNotification(msg, 'error');
       return;
     }
 
     // Strictly enforce uniqueness (1 akun hanya 1 gmail)
     const emailExists = registeredList.some(s => s.email.toLowerCase() === cleanedEmail);
     if (emailExists) {
-      setErrorMessage('Gmail ini sudah terdaftar! Gunakan Gmail lain atau silakan Masuk Ke Akun Anda.');
+      const msg = 'Gmail ini sudah terdaftar! Gunakan Gmail lain atau silakan Masuk Ke Akun Anda.';
+      setErrorMessage(msg);
+      showNotification(msg, 'warning');
       return;
     }
 
     // Also enforce NIM uniqueness for security/integrity
     const nimExists = registeredList.some(s => s.nim.trim() === nim.trim());
     if (nimExists) {
-      setErrorMessage('Nomor Induk Mahasiswa (NIM) ini sudah digunakan oleh akun lain!');
+      const msg = 'Nomor Induk Mahasiswa (NIM) ini sudah digunakan oleh akun lain!';
+      setErrorMessage(msg);
+      showNotification(msg, 'warning');
       return;
     }
 
@@ -125,11 +138,13 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
     localStorage.setItem('uab_student_registered_v5', 'true');
     localStorage.setItem('uab_student_profile_v5', JSON.stringify(newStudent));
 
-    setSuccessMessage(`Akun baru untuk ${name} berhasil didaftarkan! Mengalihkan ke portal...`);
+    const successMsg = `Pendaftaran Mahasiswa Berhasil! Akun ${name} telah diaktifkan.`;
+    setSuccessMessage(successMsg);
+    showNotification(successMsg, 'success', 'Pendaftaran Berhasil');
     
     setTimeout(() => {
       onRegisterComplete(newStudent);
-    }, 1500);
+    }, 1200);
   };
 
   // Login handler
@@ -139,7 +154,9 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
     setSuccessMessage('');
 
     if (!loginEmail.trim()) {
-      setErrorMessage('Masukkan alamat Gmail Anda!');
+      const msg = 'Masukkan alamat Gmail Anda!';
+      setErrorMessage(msg);
+      showNotification(msg, 'warning');
       return;
     }
 
@@ -148,7 +165,9 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
     // Find matched email account
     const matchedAccount = registeredList.find(s => s.email.toLowerCase() === cleanedEmail);
     if (!matchedAccount) {
-      setErrorMessage('Email Gmail belum terdaftar di sistem! Silakan buat akun baru terlebih dahulu.');
+      const msg = 'Email Gmail belum terdaftar di sistem! Silakan buat akun baru terlebih dahulu.';
+      setErrorMessage(msg);
+      showNotification(msg, 'error');
       return;
     }
 
@@ -156,11 +175,13 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
     localStorage.setItem('uab_student_registered_v5', 'true');
     localStorage.setItem('uab_student_profile_v5', JSON.stringify(matchedAccount));
 
-    setSuccessMessage(`Selamat datang kembali, ${matchedAccount.name}! Membuka dashboard...`);
+    const successMsg = `Selamat datang kembali, ${matchedAccount.name}! Membuka dashboard...`;
+    setSuccessMessage(successMsg);
+    showNotification(successMsg, 'success', 'Login Berhasil');
 
     setTimeout(() => {
       onRegisterComplete(matchedAccount);
-    }, 1500);
+    }, 1200);
   };
 
   // Admin login handler
@@ -172,7 +193,9 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
     if (adminUsername === 'admin' && adminPassword === 'admin123') {
       localStorage.setItem('uab_is_admin_authenticated', 'true');
       localStorage.setItem('uab_student_registered_v5', 'true');
-      setSuccessMessage('Login Administrator Berhasil! Mengalihkan ke Panel Admin...');
+      const successMsg = 'Login Administrator Berhasil! Mengalihkan ke Panel Admin...';
+      setSuccessMessage(successMsg);
+      showNotification(successMsg, 'success', 'Akses Admin Diterima');
       setTimeout(() => {
         if (onAdminLogin) {
           onAdminLogin();
@@ -192,7 +215,9 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
         }
       }, 1000);
     } else {
-      setErrorMessage('Kredensial Admin Salah! Username: admin, Password: admin123');
+      const errMsg = 'Username atau Password Administrator Salah!';
+      setErrorMessage(errMsg);
+      showNotification(errMsg, 'error');
     }
   };
 

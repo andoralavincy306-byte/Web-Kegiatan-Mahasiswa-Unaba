@@ -19,6 +19,9 @@ export default function ProfileSection({ student, registrations, activities, onV
   // Filter registrations belonging to this student (by NIM)
   const studentRegistrations = registrations.filter(r => r.studentNim === student.nim);
 
+  // Check if logged in user is admin
+  const isAdmin = student.email === 'admin@unaba.ac.id' || student.nim === '99999999' || student.name.toLowerCase().includes('admin') || localStorage.getItem('uab_is_admin_authenticated') === 'true';
+
   // Print function simulated
   const handlePrintTranscript = () => {
     const printWindow = window.open('', '_blank');
@@ -420,26 +423,37 @@ export default function ProfileSection({ student, registrations, activities, onV
               </div>
               <div>
                 <span className="inline-block rounded-full bg-univ-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-univ-orange-700 uppercase">
-                  S1 Reguler
+                  {isAdmin ? 'ADMINISTRATOR' : 'S1 Reguler'}
                 </span>
                 <h3 className="text-lg font-bold text-gray-900 mt-1 leading-snug">{student.name}</h3>
-                <p className="text-xs font-semibold text-gray-500">NIM: {student.nim}</p>
+                <p className="text-xs font-semibold text-gray-500">{isAdmin ? 'Akses System Administrator' : `NIM: ${student.nim}`}</p>
               </div>
             </div>
 
             <div className="space-y-4 pt-5 text-sm">
-              <div className="flex items-start justify-between">
-                <span className="text-gray-500 font-medium">Program Studi:</span>
-                <span className="text-right font-semibold text-gray-900 max-w-[180px]">{student.department}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 font-medium">Fakultas:</span>
-                <span className="font-semibold text-gray-900">{student.faculty || 'Fakultas Sains dan Teknik'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 font-medium font-sans">Semester:</span>
-                <span className="font-semibold text-gray-900 font-mono">{student.semester} (Genap)</span>
-              </div>
+              {isAdmin ? (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500 font-medium">Akses Sistem:</span>
+                  <span className="font-extrabold text-univ-orange-600 bg-univ-orange-50 px-3 py-1 rounded-lg border border-univ-orange-200">
+                    Admin
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between">
+                    <span className="text-gray-500 font-medium">Program Studi:</span>
+                    <span className="text-right font-semibold text-gray-900 max-w-[180px]">{student.department}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500 font-medium">Fakultas:</span>
+                    <span className="font-semibold text-gray-900">{student.faculty || 'Fakultas Sains dan Teknik'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500 font-medium font-sans">Semester:</span>
+                    <span className="font-semibold text-gray-900 font-mono">{student.semester} (Genap)</span>
+                  </div>
+                </>
+              )}
               <div className="flex items-center justify-between border-t border-gray-55/65 pt-3">
                 <span className="text-gray-500 font-medium flex items-center space-x-1.5">
                   <Mail className="h-4 w-4 text-gray-400" />
