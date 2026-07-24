@@ -170,6 +170,8 @@ export default function StudentRegisterGate({ onRegisterComplete, onAdminLogin }
     setSuccessMessage('');
 
     if (adminUsername === 'admin' && adminPassword === 'admin123') {
+      localStorage.setItem('uab_is_admin_authenticated', 'true');
+      localStorage.setItem('uab_student_registered_v5', 'true');
       setSuccessMessage('Login Administrator Berhasil! Mengalihkan ke Panel Admin...');
       setTimeout(() => {
         if (onAdminLogin) {

@@ -68,6 +68,7 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('uab_student_registered_v5');
     localStorage.removeItem('uab_student_profile_v5');
+    localStorage.removeItem('uab_is_admin_authenticated');
     localStorage.setItem('uab_just_logged_out_v5', 'true');
     setIsRegistered(false);
     setActivePage('HOME');
@@ -406,6 +407,18 @@ export default function App() {
           setIsRegistered(true);
         }} 
         onAdminLogin={() => {
+          localStorage.setItem('uab_student_registered_v5', 'true');
+          localStorage.setItem('uab_is_admin_authenticated', 'true');
+          setStudent({
+            name: 'Administrator Portal',
+            nim: '99999999',
+            email: 'admin@unaba.ac.id',
+            department: 'Sistem Informasi',
+            semester: 8,
+            skpiPointsAccumulated: 100,
+            registeredActivityIds: [],
+            faculty: 'Fakultas Psikologi dan Sains'
+          });
           setIsRegistered(true);
           setActivePage('ADMIN');
         }}

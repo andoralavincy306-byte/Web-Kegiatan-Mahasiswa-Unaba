@@ -115,10 +115,18 @@ export default function AdminPanel({
   );
 
   // Authentication State
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    return localStorage.getItem('uab_is_admin_authenticated') === 'true';
+  });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  React.useEffect(() => {
+    if (localStorage.getItem('uab_is_admin_authenticated') === 'true') {
+      setIsAdminLoggedIn(true);
+    }
+  }, []);
 
   // Local Settings States (for "Simpan Perubahan/Save Changes" requirement)
   const [localPlhRektorName, setLocalPlhRektorName] = useState(plhRektorName);
@@ -319,6 +327,7 @@ export default function AdminPanel({
     e.preventDefault();
     if (username === 'admin' && password === 'admin123') {
       setIsAdminLoggedIn(true);
+      localStorage.setItem('uab_is_admin_authenticated', 'true');
       setLoginError('');
     } else {
       setLoginError('Kredensial salah. Silakan periksa kembali username dan kata sandi Anda.');
@@ -452,6 +461,7 @@ export default function AdminPanel({
 
   const handleLogout = () => {
     setIsAdminLoggedIn(false);
+    localStorage.removeItem('uab_is_admin_authenticated');
     setUsername('');
     setPassword('');
   };
